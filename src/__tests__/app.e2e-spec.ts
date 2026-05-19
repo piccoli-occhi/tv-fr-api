@@ -60,6 +60,8 @@ describe('ApiController (e2e)', () => {
         const response = await request(app.getHttpServer()).get('/api/channels').expect(200)
 
         expect(response.body.total).toBe(2)
+        expect(response.body.totalPages).toBe(1)
+        expect(response.body.count).toBe(2)
         expect(response.body.channels).toHaveLength(2)
         expect(response.body.channels).toEqual(
             expect.arrayContaining([
@@ -74,5 +76,32 @@ describe('ApiController (e2e)', () => {
         for (const channel of response.body.channels) {
             expect(channel).not.toHaveProperty('programs')
         }
+    })
+
+    test('GET /api/channels?page=1&limit=1', async () => {
+        await channelRepository.save([
+            { xmlId: 'channel-1', displayName: 'Alpha', icon: null },
+            { xmlId: 'channel-2', displayName: 'Beta', icon: null },
+        ])
+
+        const response = await request(app.getHttpServer()).get('/api/channels?page=1&limit=1').expect(200)
+
+        expect(response.body.total).toBe(2)
+        expect(response.body.totalPages).toBe(2)
+        expect(response.body.count).toBe(1)
+        expect(response.body.channels).toHaveLength(1)
+        expect(response.body.channels[0].displayName).toBe('Alpha')
+    })
+
+    test('GET /api/channels?order=desc', async () => {
+        await channelRepository.save([
+            { xmlId: 'channel-1', displayName: 'Alpha', icon: null },
+            { xmlId: 'channel-2', displayName: 'Beta', icon: null },
+        ])
+
+        const response = await request(app.getHttpServer()).get('/api/channels?order=desc').expect(200)
+
+        expect(response.body.channels[0].displayName).toBe('Beta')
+        expect(response.body.channels[1].displayName).toBe('Alpha')
     })
 })
