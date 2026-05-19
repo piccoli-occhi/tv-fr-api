@@ -22,16 +22,7 @@ import { XmlTvModule } from './xml-tv/xml-tv.module'
                 database: config.get<string>('DATABASE_NAME'),
                 autoLoadEntities: true,
                 synchronize: config.get<string>('NODE_ENV') !== 'production',
-                retryAttempts: process.env.NODE_ENV === 'test' ? 0 : 10,
             }),
-            dataSourceFactory:
-                process.env.NODE_ENV === 'test'
-                    ? async (options) => {
-                          const { createPgMemDataSource } = await import('./__tests__/pg-mem-data-source.ts')
-
-                          return createPgMemDataSource(options)
-                      }
-                    : undefined,
         }),
         XmlTvModule,
         TypeOrmModule.forFeature([Channel]),
