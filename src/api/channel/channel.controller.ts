@@ -1,7 +1,7 @@
-import { Controller, Get, Query } from '@nestjs/common'
-import { ApiOkResponse, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger'
-import { ApiService } from './api.service'
-import { ChannelSortField, type PaginatedChannelsResponse, type PaginationQuery, SortQuery } from './types'
+import { Controller, Get, Param, Query } from '@nestjs/common'
+import { ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger'
+import { type ChannelDetailsResponse, ChannelSortField, type PaginatedChannelsResponse, type PaginationQuery, SortQuery } from '../types'
+import { ChannelService } from './channel.service'
 
 type ParsedPagination = {
     page: number
@@ -11,8 +11,8 @@ type ParsedPagination = {
 
 @ApiTags('Channels')
 @Controller()
-export class ApiChannelController {
-    public constructor(private readonly apiService: ApiService) {}
+export class ChannelController {
+    public constructor(private readonly channelService: ChannelService) {}
 
     @Get('channels')
     @ApiOperation({ summary: 'List channels', description: 'Returns a paginated list of channels sorted by a given field.' })
@@ -33,7 +33,26 @@ export class ApiChannelController {
             ? (query.sort as ChannelSortField)
             : ChannelSortField.DisplayName
 
-        return this.apiService.listChannels({ page, limit, sort, order })
+        return this.channelService.listChannels({ page, limit, sort, order })
+    }
+
+    @Get('channels/:id')
+    @ApiOperation({
+        summary: 'Get a channel with its current and daily programs',
+        description:
+            'Lookup a channel by its UUID or its xmlId. Returns the channel, the currently airing program (or null) and all programs of the given day (default today, FR timezone).',
+    })
+    @ApiParam({ name: 'id', description: 'Channel UUID or xmlId' })
+    @ApiQuery({
+        name: 'day',
+        required: false,
+        type: String,
+        description: 'Target day as DD/MM/YYYY in Europe/Paris timezone. Defaults to today.',
+        example: '20/05/2026',
+    })
+    @ApiOkResponse({ description: 'Channel details with current and daily programs' })
+    public async channelDetails(@Param('id') channelId: string, @Query('day') programDay?: string): Promise<ChannelDetailsResponse> {
+        return this.channelService.getChannelDetails({ channelId, programDay })
     }
 
     private parsePagination(query: PaginationQuery): ParsedPagination {

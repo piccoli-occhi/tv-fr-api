@@ -21,6 +21,12 @@ export class Program {
     @Column({ type: 'varchar', nullable: false })
     public xmlStop: string
 
+    @Column({ type: 'timestamptz', nullable: false })
+    public startAt: Date
+
+    @Column({ type: 'timestamptz', nullable: false })
+    public stopAt: Date
+
     @Column({ type: 'varchar', nullable: true })
     public ratingIcon: string | null
 

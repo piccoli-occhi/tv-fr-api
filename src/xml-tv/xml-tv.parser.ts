@@ -1,5 +1,6 @@
 import * as fs from 'node:fs'
 import { Logger } from '@nestjs/common'
+import { parse } from 'date-fns'
 import sax, { createStream, type QualifiedTag, type Tag } from 'sax'
 import { Channel } from './entities/channel.entity'
 import { Program } from './entities/program.entity'
@@ -25,6 +26,8 @@ enum TagName {
 }
 
 export class XMLParser {
+    private static readonly XML_TIME_FORMAT = 'yyyyMMddHHmmss xx'
+
     private readonly logger = new Logger(XMLParser.name)
 
     private readonly xmlPath: string
@@ -131,6 +134,8 @@ export class XMLParser {
 
         this.currentProgram.xmlStart = start.toString()
         this.currentProgram.xmlStop = stop.toString()
+        this.currentProgram.startAt = this.parseXmlTime(this.currentProgram.xmlStart)
+        this.currentProgram.stopAt = this.parseXmlTime(this.currentProgram.xmlStop)
         this.currentProgram.channelXmlId = channelXmlId.toString()
         this.currentProgram.categories = []
         this.currentProgram.ratingIcon = null
@@ -186,5 +191,9 @@ export class XMLParser {
         if (this.lastTagModal === TagName.CREDITS) {
             this.currentProgram.credits.push(value)
         }
+    }
+
+    private parseXmlTime(value: string): Date {
+        return parse(value, XMLParser.XML_TIME_FORMAT, new Date())
     }
 }

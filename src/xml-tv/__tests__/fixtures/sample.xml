@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tv>
+    <channel id="tf1.fr">
+        <display-name>TF1</display-name>
+        <icon src="https://example.com/tf1.png"/>
+    </channel>
+    <channel id="france2.fr">
+        <display-name>France 2</display-name>
+    </channel>
+    <programme start="20260520201500 +0200" stop="20260520213000 +0200" channel="tf1.fr">
+        <title>Le Journal</title>
+        <sub-title>Édition du soir</sub-title>
+        <desc>Actualité du jour</desc>
+        <category>News</category>
+        <category>Information</category>
+        <icon src="https://example.com/journal.png"/>
+        <episode-num>S01E42</episode-num>
+        <credits>
+            <presenter>Anne Dupont</presenter>
+            <presenter>Paul Martin</presenter>
+        </credits>
+        <rating>
+            <value>TP</value>
+            <icon src="https://example.com/tp.png"/>
+        </rating>
+    </programme>
+    <programme start="20260520220000 +0200" stop="20260520230000 +0200" channel="france2.fr">
+        <title>Documentaire</title>
+    </programme>
+</tv>

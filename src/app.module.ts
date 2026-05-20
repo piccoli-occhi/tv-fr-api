@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { TypeOrmModule } from '@nestjs/typeorm'
-import { ApiChannelController } from './api/api.channel.controller'
 import { ApiController } from './api/api.controller'
 import { ApiService } from './api/api.service'
+import { ChannelController } from './api/channel/channel.controller'
+import { ChannelService } from './api/channel/channel.service'
 import { Channel } from './xml-tv/entities/channel.entity'
+import { Program } from './xml-tv/entities/program.entity'
 import { XmlTvModule } from './xml-tv/xml-tv.module'
 
 @Module({
@@ -26,9 +28,9 @@ import { XmlTvModule } from './xml-tv/xml-tv.module'
             }),
         }),
         XmlTvModule,
-        TypeOrmModule.forFeature([Channel]),
+        TypeOrmModule.forFeature([Channel, Program]),
     ],
-    controllers: [ApiController, ApiChannelController],
-    providers: [ApiService],
+    controllers: [ApiController, ChannelController],
+    providers: [ApiService, ChannelService],
 })
 export class AppModule {}

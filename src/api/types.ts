@@ -1,4 +1,5 @@
 import type { Channel } from 'src/xml-tv/entities/channel.entity'
+import type { Program } from 'src/xml-tv/entities/program.entity'
 
 // Common
 
@@ -30,4 +31,10 @@ export enum ChannelSortField {
 
 export type PaginatedChannelsResponse = PaginatedResponse & {
     channels: Channel[]
+}
+
+export type ChannelDetailsResponse = {
+    channel: Channel
+    currentProgram: Program | null
+    dayPrograms: Program[]
 }
