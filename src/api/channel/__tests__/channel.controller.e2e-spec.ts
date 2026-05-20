@@ -15,22 +15,24 @@ const toXmlTime = (date: Date): string => {
 
 const dayFormatter = new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris' })
 
-const buildProgram = (title: string, channelXmlId: string, start: Date, stop: Date) => ({
-    title,
-    desc: null,
-    subTitle: null,
-    xmlStart: toXmlTime(start),
-    xmlStop: toXmlTime(stop),
-    startAt: start,
-    stopAt: stop,
-    channelXmlId,
-    ratingIcon: null,
-    icon: null,
-    episode: null,
-    rating: null,
-    categories: [],
-    credits: [],
-})
+function buildProgram({ title, channelXmlId, start, stop }: { title: string; channelXmlId: string; start: Date; stop: Date }) {
+    return {
+        title,
+        desc: null,
+        subTitle: null,
+        xmlStart: toXmlTime(start),
+        xmlStop: toXmlTime(stop),
+        startAt: start,
+        stopAt: stop,
+        channelXmlId,
+        ratingIcon: null,
+        icon: null,
+        episode: null,
+        rating: null,
+        categories: [],
+        credits: [],
+    }
+}
 
 describe('ChannelController', () => {
     let app: INestApplication<App>
@@ -120,20 +122,30 @@ describe('ChannelController', () => {
             // Create programs at specific times: 06:00, 10:00, 15:00, 22:00 UTC
             // This way they're always in the same calendar day
             await programRepository.save([
-                buildProgram(
-                    'Yesterday show',
-                    channel.xmlId,
-                    new Date(baseTime - 24 * oneHour + 6 * oneHour),
-                    new Date(baseTime - 24 * oneHour + 7 * oneHour),
-                ),
-                buildProgram('Current show', channel.xmlId, new Date(now - oneHour), new Date(now + oneHour)),
-                buildProgram('Later today', channel.xmlId, new Date(baseTime + 15 * oneHour), new Date(baseTime + 16 * oneHour)),
-                buildProgram(
-                    'Tomorrow show',
-                    channel.xmlId,
-                    new Date(baseTime + 24 * oneHour + 6 * oneHour),
-                    new Date(baseTime + 24 * oneHour + 7 * oneHour),
-                ),
+                buildProgram({
+                    title: 'Yesterday show',
+                    channelXmlId: channel.xmlId,
+                    start: new Date(baseTime - 24 * oneHour + 6 * oneHour),
+                    stop: new Date(baseTime - 24 * oneHour + 7 * oneHour),
+                }),
+                buildProgram({
+                    title: 'Current show',
+                    channelXmlId: channel.xmlId,
+                    start: new Date(now - oneHour),
+                    stop: new Date(now + oneHour),
+                }),
+                buildProgram({
+                    title: 'Later today',
+                    channelXmlId: channel.xmlId,
+                    start: new Date(baseTime + 15 * oneHour),
+                    stop: new Date(baseTime + 16 * oneHour),
+                }),
+                buildProgram({
+                    title: 'Tomorrow show',
+                    channelXmlId: channel.xmlId,
+                    start: new Date(baseTime + 24 * oneHour + 6 * oneHour),
+                    stop: new Date(baseTime + 24 * oneHour + 7 * oneHour),
+                }),
             ])
 
             const response = await request(app.getHttpServer()).get('/api/channels/tf1.fr').expect(200)
@@ -163,8 +175,18 @@ describe('ChannelController', () => {
             const tomorrowAtNoonUtc = new Date(Date.UTC(tomorrow.getUTCFullYear(), tomorrow.getUTCMonth(), tomorrow.getUTCDate(), 12, 0, 0))
 
             await programRepository.save([
-                buildProgram('Today show', channel.xmlId, new Date(now), new Date(now + 60 * 60 * 1000)),
-                buildProgram('Tomorrow noon', channel.xmlId, tomorrowAtNoonUtc, new Date(tomorrowAtNoonUtc.getTime() + 60 * 60 * 1000)),
+                buildProgram({
+                    title: 'Today show',
+                    channelXmlId: channel.xmlId,
+                    start: new Date(now),
+                    stop: new Date(now + 60 * 60 * 1000),
+                }),
+                buildProgram({
+                    title: 'Tomorrow noon',
+                    channelXmlId: channel.xmlId,
+                    start: tomorrowAtNoonUtc,
+                    stop: new Date(tomorrowAtNoonUtc.getTime() + 60 * 60 * 1000),
+                }),
             ])
 
             const tomorrowFR = dayFormatter.format(new Date(now + oneDay))
