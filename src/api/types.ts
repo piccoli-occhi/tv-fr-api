@@ -38,3 +38,18 @@ export type ChannelDetailsResponse = {
     currentProgram: Program | null
     dayPrograms: Program[]
 }
+
+// Program
+
+export enum ProgramSortField {
+    StartAt = 'startAt',
+    Title = 'title',
+}
+
+export type ProgramWithUrl = Program & {
+    url: string
+}
+
+export type PaginatedProgramsResponse = PaginatedResponse & {
+    programs: ProgramWithUrl[]
+}

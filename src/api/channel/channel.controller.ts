@@ -33,9 +33,9 @@ export class ChannelController {
         const sort = Object.values(ChannelSortField).includes(query.sort as ChannelSortField)
             ? (query.sort as ChannelSortField)
             : ChannelSortField.DisplayName
-        const baseUrl = `${req.protocol}://${req.get('Host')}/api/channels`
 
         const { channels, ...rest } = await this.channelService.listChannels({ page, limit, sort, order })
+        const baseUrl = this.getBaseUrl(req)
 
         return {
             ...rest,
@@ -71,5 +71,9 @@ export class ChannelController {
             limit: Math.min(100, Number(query.limit) || 20),
             order: query.order === SortQuery.DESC ? SortQuery.DESC : SortQuery.ASC,
         }
+    }
+
+    private getBaseUrl(req: Request): string {
+        return `${req.protocol}://${req.get('Host')}/api/channels`
     }
 }
