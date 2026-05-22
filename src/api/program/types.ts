@@ -8,6 +8,12 @@ export type ListProgramsQuery = {
     order: SortQuery
 }
 
+export type ListProgramsByDayQuery = {
+    day: Date
+    page: number
+    limit: number
+}
+
 export enum ProgramSortField {
     StartAt = 'startAt',
     Title = 'title',

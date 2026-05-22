@@ -1,5 +1,6 @@
-import { Controller, Get, Param, Query } from '@nestjs/common'
+import { BadRequestException, Controller, Get, Param, Query } from '@nestjs/common'
 import { ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger'
+import { isValid } from 'date-fns'
 import { type PaginationQuery, SortQuery } from '../types'
 import { ProgramService } from './program.service'
 import { PaginatedProgramsResponse, ProgramSortField } from './types'
@@ -36,6 +37,56 @@ export class ProgramController {
         const result = await this.programService.listCurrentPrograms({ page, limit, sort, order })
 
         return result
+    }
+
+    @Get('programs/:day')
+    @ApiOperation({
+        summary: 'List programs for a specific day',
+        description: 'Returns a paginated list of programs for the specified day.',
+    })
+    @ApiParam({
+        name: 'day',
+        description: 'Date in YYYY-MM-DD format',
+    })
+    @ApiQuery({
+        name: 'page',
+        required: false,
+        type: Number,
+        description: 'Page number (min 1)',
+        example: 1,
+    })
+    @ApiQuery({
+        name: 'limit',
+        required: false,
+        type: Number,
+        description: 'Items per page (max 100, default 20)',
+        example: 20,
+    })
+    @ApiOkResponse({
+        description: 'Paginated list of programs for the day',
+    })
+    public async getDayPrograms(
+        @Param('day') dayStr: string,
+        @Query() query: PaginationQuery<ProgramSortField>,
+    ): Promise<PaginatedProgramsResponse> {
+        const date = this.validateDate(dayStr)
+        const { page, limit } = this.parsePagination(query)
+
+        return this.programService.listProgramsByDay({
+            day: date,
+            page,
+            limit,
+        })
+    }
+
+    private validateDate(dateStr: string): Date {
+        const date = new Date(`${dateStr}T00:00:00Z`)
+
+        if (!isValid(date)) {
+            throw new BadRequestException('invalid_date')
+        }
+
+        return date
     }
 
     private parsePagination(query: PaginationQuery<ProgramSortField>): ParsedPagination {

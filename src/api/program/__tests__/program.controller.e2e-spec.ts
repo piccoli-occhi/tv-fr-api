@@ -1,6 +1,6 @@
 import type { INestApplication } from '@nestjs/common'
 import { getRepositoryToken } from '@nestjs/typeorm'
-import { addHours, addMinutes, subHours, subMinutes } from 'date-fns'
+import { addDays, addHours, addMinutes, format, subHours, subMinutes } from 'date-fns'
 import request from 'supertest'
 import type { App } from 'supertest/types'
 import type { Repository } from 'typeorm'
@@ -128,6 +128,116 @@ describe('ProgramController', () => {
             expect(response.body.count).toBe(1)
             expect(response.body.limit).toBe(1)
             expect(response.body.programs[0].title).toBe('Show 2')
+        })
+    })
+
+    describe('GET /api/programs/:day', () => {
+        test('returns programs for a specific day', async () => {
+            const targetDay = new Date('2026-05-22')
+            const dayStart = new Date(targetDay)
+            dayStart.setHours(0, 0, 0, 0)
+            const dayEnd = new Date(targetDay)
+            dayEnd.setHours(23, 59, 59, 999)
+
+            await programRepository.save([
+                buildProgram({
+                    title: 'Yesterday show',
+                    start: subHours(dayStart, 5),
+                    stop: subHours(dayStart, 1),
+                }),
+                buildProgram({
+                    title: 'Today show 1',
+                    start: addHours(dayStart, 2),
+                    stop: addHours(dayStart, 3),
+                }),
+                buildProgram({
+                    title: 'Today show 2',
+                    start: addHours(dayStart, 6),
+                    stop: addHours(dayStart, 7),
+                }),
+                buildProgram({
+                    title: 'Tomorrow show',
+                    start: addDays(dayEnd, 1),
+                    stop: addDays(dayEnd, 2),
+                }),
+            ])
+
+            const dayStr = format(targetDay, 'yyyy-MM-dd')
+            const response = await request(app.getHttpServer()).get(`/api/programs/${dayStr}`).expect(200)
+
+            expect(response.body.total).toBe(2)
+            expect(response.body.count).toBe(2)
+            expect(response.body.programs).toHaveLength(2)
+            expect(response.body.programs.map((p: Program) => p.title)).toEqual(['Today show 1', 'Today show 2'])
+        })
+
+        test('returns programs sorted by startAt in ascending order', async () => {
+            const targetDay = new Date('2026-05-22')
+            const dayStart = new Date(targetDay)
+            dayStart.setHours(0, 0, 0, 0)
+
+            await programRepository.save([
+                buildProgram({
+                    title: 'Show at 20:00',
+                    start: addHours(dayStart, 20),
+                    stop: addHours(dayStart, 21),
+                }),
+                buildProgram({
+                    title: 'Show at 08:00',
+                    start: addHours(dayStart, 8),
+                    stop: addHours(dayStart, 9),
+                }),
+                buildProgram({
+                    title: 'Show at 14:00',
+                    start: addHours(dayStart, 14),
+                    stop: addHours(dayStart, 15),
+                }),
+            ])
+
+            const dayStr = format(targetDay, 'yyyy-MM-dd')
+            const response = await request(app.getHttpServer()).get(`/api/programs/${dayStr}`).expect(200)
+            const programs = response.body.programs as Program[]
+
+            expect(programs.map((p: Program) => p.title)).toEqual(['Show at 08:00', 'Show at 14:00', 'Show at 20:00'])
+        })
+
+        test('supports pagination', async () => {
+            const targetDay = new Date('2026-05-22')
+            const dayStart = new Date(targetDay)
+            dayStart.setHours(0, 0, 0, 0)
+
+            await programRepository.save([
+                buildProgram({
+                    title: 'Show 1',
+                    start: addHours(dayStart, 1),
+                    stop: addHours(dayStart, 2),
+                }),
+                buildProgram({
+                    title: 'Show 2',
+                    start: addHours(dayStart, 3),
+                    stop: addHours(dayStart, 4),
+                }),
+                buildProgram({
+                    title: 'Show 3',
+                    start: addHours(dayStart, 5),
+                    stop: addHours(dayStart, 6),
+                }),
+            ])
+
+            const dayStr = format(targetDay, 'yyyy-MM-dd')
+            const response = await request(app.getHttpServer()).get(`/api/programs/${dayStr}?page=2&limit=1`).expect(200)
+
+            expect(response.body.total).toBe(3)
+            expect(response.body.totalPages).toBe(3)
+            expect(response.body.count).toBe(1)
+            expect(response.body.limit).toBe(1)
+            expect(response.body.programs[0].title).toBe('Show 2')
+        })
+
+        test('returns 400 for invalid date format', async () => {
+            const response = await request(app.getHttpServer()).get('/api/programs/22-05-2026').expect(400)
+
+            expect(response.body.message).toContain('invalid_date')
         })
     })
 })
