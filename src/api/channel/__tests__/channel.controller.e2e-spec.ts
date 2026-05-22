@@ -3,36 +3,12 @@ import { getRepositoryToken } from '@nestjs/typeorm'
 import request from 'supertest'
 import type { App } from 'supertest/types'
 import type { Repository } from 'typeorm'
-import { createTestApp } from '../../../__tests__/helpers/create-test-app'
-import { Channel } from '../../../xml-tv/entities/channel.entity'
-import { Program } from '../../../xml-tv/entities/program.entity'
-
-const pad = (value: number): string => value.toString().padStart(2, '0')
-
-const toXmlTime = (date: Date): string => {
-    return `${date.getUTCFullYear()}${pad(date.getUTCMonth() + 1)}${pad(date.getUTCDate())}${pad(date.getUTCHours())}${pad(date.getUTCMinutes())}${pad(date.getUTCSeconds())} +0000`
-}
+import { createTestApp } from '@/__tests__/helpers/create-test-app'
+import { buildProgram } from '@/__tests__/helpers/program-test.helper'
+import { Channel } from '@/xml-tv/entities/channel.entity'
+import { Program } from '@/xml-tv/entities/program.entity'
 
 const dayFormatter = new Intl.DateTimeFormat('fr-FR', { timeZone: 'Europe/Paris' })
-
-function buildProgram({ title, channelXmlId, start, stop }: { title: string; channelXmlId: string; start: Date; stop: Date }) {
-    return {
-        title,
-        desc: null,
-        subTitle: null,
-        xmlStart: toXmlTime(start),
-        xmlStop: toXmlTime(stop),
-        startAt: start,
-        stopAt: stop,
-        channelXmlId,
-        ratingIcon: null,
-        icon: null,
-        episode: null,
-        rating: null,
-        categories: [],
-        credits: [],
-    }
-}
 
 describe('ChannelController', () => {
     let app: INestApplication<App>

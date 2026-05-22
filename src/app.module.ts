@@ -5,6 +5,8 @@ import { ApiController } from './api/api.controller'
 import { ApiService } from './api/api.service'
 import { ChannelController } from './api/channel/channel.controller'
 import { ChannelService } from './api/channel/channel.service'
+import { ProgramController } from './api/program/program.controller'
+import { ProgramService } from './api/program/program.service'
 import { Channel } from './xml-tv/entities/channel.entity'
 import { Program } from './xml-tv/entities/program.entity'
 import { XmlTvModule } from './xml-tv/xml-tv.module'
@@ -30,7 +32,7 @@ import { XmlTvModule } from './xml-tv/xml-tv.module'
         XmlTvModule,
         TypeOrmModule.forFeature([Channel, Program]),
     ],
-    controllers: [ApiController, ChannelController],
-    providers: [ApiService, ChannelService],
+    controllers: [ApiController, ChannelController, ProgramController],
+    providers: [ApiService, ChannelService, ProgramService],
 })
 export class AppModule {}

@@ -1,9 +1,6 @@
-import type { Channel } from 'src/xml-tv/entities/channel.entity'
-import type { Program } from 'src/xml-tv/entities/program.entity'
+export const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
-// Common
-
-type PaginatedResponse = {
+export type PaginatedResponse = {
     total: number
     totalPages: number
     count: number
@@ -20,21 +17,4 @@ export type PaginationQuery<SortField extends string = string> = {
 export enum SortQuery {
     DESC = 'desc',
     ASC = 'asc',
-}
-
-// Channel
-
-export enum ChannelSortField {
-    DisplayName = 'displayName',
-    XmlId = 'xmlId',
-}
-
-export type PaginatedChannelsResponse = PaginatedResponse & {
-    channels: Array<Channel & { urls: string[] }>
-}
-
-export type ChannelDetailsResponse = {
-    channel: Channel
-    currentProgram: Program | null
-    dayPrograms: Program[]
 }

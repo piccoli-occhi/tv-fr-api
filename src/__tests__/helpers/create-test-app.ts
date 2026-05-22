@@ -4,10 +4,10 @@ import { getDataSourceToken } from '@nestjs/typeorm'
 import { TYPEORM_MODULE_OPTIONS } from '@nestjs/typeorm/dist/typeorm.constants'
 import type { App } from 'supertest/types'
 import type { DataSourceOptions } from 'typeorm'
-import { AppModule } from '../../app.module'
-import { Channel } from '../../xml-tv/entities/channel.entity'
-import { Program } from '../../xml-tv/entities/program.entity'
-import { createPgMemDataSource } from '../pg-mem-data-source'
+import { createPgMemDataSource } from '@/__tests__/pg-mem-data-source'
+import { AppModule } from '@/app.module'
+import { Channel } from '@/xml-tv/entities/channel.entity'
+import { Program } from '@/xml-tv/entities/program.entity'
 
 export const createTestApp = async (): Promise<{ app: INestApplication<App>; module: TestingModule }> => {
     const module: TestingModule = await Test.createTestingModule({
@@ -25,6 +25,7 @@ export const createTestApp = async (): Promise<{ app: INestApplication<App>; mod
         .compile()
 
     const app = module.createNestApplication()
+
     app.setGlobalPrefix('api')
     await app.init()
 

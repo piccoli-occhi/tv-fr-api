@@ -4,29 +4,8 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { And, LessThan, LessThanOrEqual, MoreThan, MoreThanOrEqual, Repository } from 'typeorm'
 import { Channel } from '../../xml-tv/entities/channel.entity'
 import { Program } from '../../xml-tv/entities/program.entity'
-import { type ChannelDetailsResponse, ChannelSortField, SortQuery } from '../types'
-
-type ListChannelsQuery = {
-    page: number
-    limit: number
-    sort: ChannelSortField
-    order: SortQuery
-}
-
-type ListChannelsResult = {
-    channels: Channel[]
-    total: number
-    totalPages: number
-    count: number
-    limit: number
-}
-
-type GetChannelDetailsQuery = {
-    channelId: string
-    programDay?: string
-}
-
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+import { UUID_REGEX } from '../types'
+import { ChannelDetailsResponse, GetChannelDetailsQuery, ListChannelsQuery, ListChannelsResult } from './types'
 
 @Injectable()
 export class ChannelService {

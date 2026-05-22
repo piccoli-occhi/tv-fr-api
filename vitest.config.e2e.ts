@@ -1,7 +1,13 @@
+import path from 'node:path'
 import swc from 'unplugin-swc'
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
+    resolve: {
+        alias: [
+            { find: '@', replacement: path.resolve(__dirname, 'src') },
+        ],
+    },
     test: {
         globals: true,
         root: './',
