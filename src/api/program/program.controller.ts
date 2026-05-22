@@ -1,6 +1,7 @@
 import { BadRequestException, Controller, Get, Param, Query } from '@nestjs/common'
 import { ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger'
 import { isValid } from 'date-fns'
+import { ApiQueryDetails } from '../api.swagger'
 import { type PaginationQuery, SortQuery } from '../types'
 import { ProgramService } from './program.service'
 import { PaginatedProgramsResponse, ProgramSortField } from './types'
@@ -18,19 +19,38 @@ export class ProgramController {
     public constructor(private readonly programService: ProgramService) {}
 
     @Get('program/:id')
-    @ApiOperation({ summary: 'Get a program by id', description: 'Lookup a program by its UUID.' })
-    @ApiParam({ name: 'id', description: 'Program UUID' })
+    @ApiOperation({
+        summary: 'Get a program by id',
+        description: 'Lookup a program by its UUID.',
+    })
+    @ApiParam({
+        name: 'id',
+        description: 'Program UUID',
+    })
     @ApiOkResponse({ description: 'Program details' })
     public async program(@Param('id') programId: string) {
         return this.programService.getProgramById(programId)
     }
 
     @Get('programs/now')
-    @ApiOperation({ summary: 'List currently airing programs', description: 'Returns a paginated list of programs airing now.' })
-    @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (min 1)', example: 1 })
-    @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (max 100, default 20)', example: 20 })
-    @ApiQuery({ name: 'sort', required: false, enum: ProgramSortField, description: 'Field to sort by', example: ProgramSortField.StartAt })
-    @ApiQuery({ name: 'order', required: false, enum: SortQuery, description: 'Sort direction', example: SortQuery.ASC })
+    @ApiOperation({
+        summary: 'List currently airing programs',
+        description: 'Returns a paginated list of programs airing now.',
+    })
+    @ApiQuery(ApiQueryDetails.page)
+    @ApiQuery(ApiQueryDetails.limit)
+    @ApiQuery(
+        ApiQueryDetails.sort({
+            enum: ProgramSortField,
+            example: ProgramSortField.StartAt,
+        }),
+    )
+    @ApiQuery(
+        ApiQueryDetails.order({
+            enum: SortQuery,
+            example: SortQuery.ASC,
+        }),
+    )
     @ApiOkResponse({ description: 'Paginated list of current programs' })
     public async now(@Query() query: PaginationQuery<ProgramSortField>): Promise<PaginatedProgramsResponse> {
         const { page, limit, sort, order } = this.parsePagination(query)
@@ -48,20 +68,8 @@ export class ProgramController {
         name: 'day',
         description: 'Date in YYYY-MM-DD format',
     })
-    @ApiQuery({
-        name: 'page',
-        required: false,
-        type: Number,
-        description: 'Page number (min 1)',
-        example: 1,
-    })
-    @ApiQuery({
-        name: 'limit',
-        required: false,
-        type: Number,
-        description: 'Items per page (max 100, default 20)',
-        example: 20,
-    })
+    @ApiQuery(ApiQueryDetails.page)
+    @ApiQuery(ApiQueryDetails.limit)
     @ApiOkResponse({
         description: 'Paginated list of programs for the day',
     })
