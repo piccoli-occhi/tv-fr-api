@@ -13,8 +13,6 @@ import { Channel } from './xml-tv/entities/channel.entity'
 import { Program } from './xml-tv/entities/program.entity'
 import { XmlTvModule } from './xml-tv/xml-tv.module'
 
-const ONE_MINUTE = 60000
-
 @Module({
     imports: [
         ConfigModule.forRoot({
@@ -35,14 +33,17 @@ const ONE_MINUTE = 60000
         }),
         XmlTvModule,
         TypeOrmModule.forFeature([Channel, Program]),
-        ThrottlerModule.forRoot({
-            throttlers: [
-                {
-                    ttl: ONE_MINUTE,
-                    limit: 10,
-                },
-            ],
-            errorMessage: 'rate_limit',
+        ThrottlerModule.forRootAsync({
+            inject: [ConfigService],
+            useFactory: (config: ConfigService) => ({
+                throttlers: [
+                    {
+                        ttl: config.get<number>('THROTTLE_TTL') ?? 60000,
+                        limit: config.get<number>('THROTTLE_LIMIT') ?? 10,
+                    },
+                ],
+                errorMessage: 'rate_limit',
+            }),
         }),
     ],
     controllers: [ApiController, ChannelController, ProgramController],
