@@ -2,6 +2,20 @@
 
 Provides api for [XML-TV-Fr](https://github.com/racacax/XML-TV-Fr).
 
+## Endpoints
+
+Projets provides docs with [swagger](https://tv-api.miceli.click/api/docs).
+
+You can test endpoints on [https://tv-api.miceli.click](https://tv-api.miceli.click) (with rate-limit).
+
+Api endpoints : 
+
+- `/api/channels`
+- `/api/channels/:id`
+- `/api/program/:id`
+- `/api/programs/now`
+- `/api/programs/:day`
+
 ## Project setup
 
 For easy command you can use [Just](https://github.com/casey/just).
