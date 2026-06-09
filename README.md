@@ -6,7 +6,7 @@ Provides api for [XML-TV-Fr](https://github.com/racacax/XML-TV-Fr).
 
 Projets provides docs with [swagger](https://tv-api.miceli.click/api/docs).
 
-You can test endpoints on [https://tv-api.miceli.click](https://tv-api.miceli.click) (with rate-limit).
+You can test endpoints on [https://tv-api.miceli.click](https://tv-api.miceli.click/api/docs) (with rate-limit).
 
 Api endpoints : 
 
