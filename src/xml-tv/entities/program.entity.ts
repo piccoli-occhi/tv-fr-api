@@ -55,4 +55,10 @@ export class Program {
     )
     @JoinColumn({ name: 'channelXmlId', referencedColumnName: 'xmlId' })
     public channel: Channel
+
+    public get isSerie(): boolean {
+        return this.categories.some((c) => {
+            return ['Série', 'Téléréalité', 'Kids'].includes(c)
+        })
+    }
 }

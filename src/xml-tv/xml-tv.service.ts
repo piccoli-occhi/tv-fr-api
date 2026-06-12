@@ -42,12 +42,16 @@ export class XmlTvService {
     }
 
     public async clean(): Promise<void> {
-        this.logger.log('action=clean, status=started')
+        try {
+            await this.channelRepository.deleteAll()
+            await this.programRepository.deleteAll()
 
-        await this.programRepository.createQueryBuilder().delete().execute()
-        await this.channelRepository.createQueryBuilder().delete().execute()
+            this.logger.log('action=clean, status=success')
+        } catch (e) {
+            this.logger.error(`action=clean, status=failed, reason=${e}`)
 
-        this.logger.log('action=clean, status=success')
+            throw e
+        }
     }
 
     public async parseXML(filePath: string): Promise<XmlResult> {
@@ -65,22 +69,30 @@ export class XmlTvService {
     }
 
     public async addChannels(channels: Channel[]): Promise<Channel[]> {
-        this.logger.log(`action=add_channels, status=started, count=${channels.length}`)
+        try {
+            const saved = await this.channelRepository.save(channels, { chunk: 500 })
 
-        const saved = await this.channelRepository.save(channels, { chunk: 500 })
+            this.logger.log(`action=add_channels, status=success, count=${saved.length}`)
 
-        this.logger.log(`action=add_channels, status=success, count=${saved.length}`)
+            return saved
+        } catch (e) {
+            this.logger.error(`action=add_channels, status=failed, reason=${e}`)
 
-        return saved
+            throw e
+        }
     }
 
     public async addPrograms(programs: Program[]): Promise<Program[]> {
-        this.logger.log(`action=add_programs, status=started, count=${programs.length}`)
+        try {
+            const saved = await this.programRepository.save(programs, { chunk: 500 })
 
-        const saved = await this.programRepository.save(programs, { chunk: 500 })
+            this.logger.log(`action=add_programs, status=success, count=${saved.length}`)
 
-        this.logger.log(`action=add_programs, status=success, count=${saved.length}`)
+            return saved
+        } catch (e) {
+            this.logger.error(`action=add_programs, status=failed, reason=${e}`)
 
-        return saved
+            throw e
+        }
     }
 }

@@ -18,6 +18,10 @@ export class Channel {
     @OneToMany(
         () => Program,
         (program) => program.channel,
+        {
+            cascade: true,
+            onDelete: 'CASCADE',
+        },
     )
     public programs: Program[]
 }
