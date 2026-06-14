@@ -1,11 +1,11 @@
 import { TZDate } from '@date-fns/tz'
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { And, LessThan, LessThanOrEqual, MoreThan, MoreThanOrEqual, Repository } from 'typeorm'
+import { And, ILike, LessThan, LessThanOrEqual, MoreThan, MoreThanOrEqual, Repository } from 'typeorm'
 import { Channel } from '../../xml-tv/entities/channel.entity'
 import { Program } from '../../xml-tv/entities/program.entity'
 import { UUID_REGEX } from '../types'
-import { ChannelDetailsResponse, GetChannelDetailsQuery, ListChannelsQuery, ListChannelsResult } from './types'
+import { ChannelDetailsResponse, GetChannelDetailsQuery, ListChannelsQuery, ListChannelsResult, SearchChannelsQuery } from './types'
 
 @Injectable()
 export class ChannelService {
@@ -20,6 +20,27 @@ export class ChannelService {
         const [channels, total] = await this.channelRepository.findAndCount({
             order: {
                 [query.sort]: query.order.toUpperCase() as 'ASC' | 'DESC',
+            },
+            skip: (query.page - 1) * query.limit,
+            take: query.limit,
+        })
+
+        return {
+            channels,
+            total,
+            totalPages: Math.ceil(total / query.limit),
+            count: channels.length,
+            limit: query.limit,
+        }
+    }
+
+    public async searchChannels(query: SearchChannelsQuery): Promise<ListChannelsResult> {
+        const [channels, total] = await this.channelRepository.findAndCount({
+            where: {
+                displayName: ILike(`%${query.q}%`),
+            },
+            order: {
+                displayName: 'ASC',
             },
             skip: (query.page - 1) * query.limit,
             take: query.limit,

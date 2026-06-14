@@ -40,3 +40,9 @@ export type GetChannelDetailsQuery = {
     channelId: string
     programDay?: string
 }
+
+export type SearchChannelsQuery = {
+    q: string
+    page: number
+    limit: number
+}

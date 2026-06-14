@@ -11,6 +11,7 @@ You can test endpoints on [https://tv-api.miceli.click](https://tv-api.miceli.cl
 Api endpoints : 
 
 - `/api/channels`
+- `/api/channels/search?q=<term>`
 - `/api/channels/:id`
 - `/api/program/:id`
 - `/api/programs/now`

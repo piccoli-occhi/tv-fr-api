@@ -117,6 +117,50 @@ describe('ChannelController', () => {
         })
     })
 
+    describe('GET /api/channels/search', () => {
+        test('returns matching channels', async () => {
+            await channelRepository.save([
+                {
+                    xmlId: 'tf1.fr',
+                    displayName: 'TF1',
+                    icon: null,
+                },
+                {
+                    xmlId: 'm6.fr',
+                    displayName: 'M6',
+                    icon: null,
+                },
+                {
+                    xmlId: 'tf1-series.fr',
+                    displayName: 'TF1 Séries Films',
+                    icon: null,
+                },
+            ])
+
+            const response = await request(app.getHttpServer()).get('/api/channels/search?q=TF1').expect(200)
+
+            expect(response.body.total).toBe(2)
+            expect(response.body.channels).toHaveLength(2)
+            expect(response.body.channels.every((c: Channel) => c.displayName.includes('TF1'))).toBe(true)
+            expect(response.body.channels.every((c: Channel) => !('programs' in c))).toBe(true)
+        })
+
+        test('returns empty result when no match', async () => {
+            await channelRepository.save([
+                {
+                    xmlId: 'tf1.fr',
+                    displayName: 'TF1',
+                    icon: null,
+                },
+            ])
+
+            const response = await request(app.getHttpServer()).get('/api/channels/search?q=Arte').expect(200)
+
+            expect(response.body.total).toBe(0)
+            expect(response.body.channels).toHaveLength(0)
+        })
+    })
+
     describe('GET /api/channels/:id', () => {
         test('returns channel with current and day programs (by xmlId)', async () => {
             const channel = await channelRepository.save({

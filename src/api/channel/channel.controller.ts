@@ -1,14 +1,22 @@
 import { Controller, Get, Param, Query, Req } from '@nestjs/common'
 import { ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger'
 import type { Request } from 'express'
+import type { Channel } from '../../xml-tv/entities/channel.entity'
+import { ApiQueryDetails } from '../api.swagger'
 import { type PaginationQuery, SortQuery } from '../types'
 import { ChannelService } from './channel.service'
-import { ChannelDetailsResponse, ChannelSortField, PaginatedChannelsResponse } from './types'
+import { ChannelDetailsResponse, ChannelSortField, PaginatedChannelsResponse, SearchChannelsQuery } from './types'
 
 type ParsedPagination = {
     page: number
     limit: number
     order: SortQuery
+}
+
+type PaginatedResponseOptions = {
+    req: Request
+    channels: Channel[]
+    rest: Omit<PaginatedChannelsResponse, 'channels'>
 }
 
 @ApiTags('Channels')
@@ -19,36 +27,21 @@ export class ChannelController {
     @Get('channels')
     @ApiOperation({
         summary: 'List channels',
-        description: 'Returns a paginated list of channels sorted by a given field.',
     })
-    @ApiQuery({
-        name: 'page',
-        required: false,
-        type: Number,
-        description: 'Page number (min 1)',
-        example: 1,
-    })
-    @ApiQuery({
-        name: 'limit',
-        required: false,
-        type: Number,
-        description: 'Items per page (max 100, default 20)',
-        example: 20,
-    })
-    @ApiQuery({
-        name: 'sort',
-        required: false,
-        enum: ChannelSortField,
-        description: 'Field to sort by',
-        example: ChannelSortField.DisplayName,
-    })
-    @ApiQuery({
-        name: 'order',
-        required: false,
-        enum: SortQuery,
-        description: 'Sort direction',
-        example: SortQuery.ASC,
-    })
+    @ApiQuery(ApiQueryDetails.page)
+    @ApiQuery(ApiQueryDetails.limit)
+    @ApiQuery(
+        ApiQueryDetails.sort({
+            enum: ChannelSortField,
+            example: ChannelSortField.DisplayName,
+        }),
+    )
+    @ApiQuery(
+        ApiQueryDetails.order({
+            enum: SortQuery,
+            example: SortQuery.ASC,
+        }),
+    )
     @ApiOkResponse({
         description: 'Paginated list of channels',
     })
@@ -64,25 +57,52 @@ export class ChannelController {
             sort,
             order,
         })
-        const baseUrl = this.getBaseUrl(req)
 
-        return {
-            ...rest,
-            channels: channels.map((c) => ({
-                ...c,
-                urls: [
-                    `${baseUrl}/${c.xmlId}`,
-                    `${baseUrl}/${c.id}`,
-                ],
-            })),
-        }
+        return this.toPaginatedResponse({
+            req,
+            channels,
+            rest,
+        })
+    }
+
+    @Get('channels/search')
+    @ApiOperation({
+        summary: 'Search channels by name',
+    })
+    @ApiQuery({
+        name: 'q',
+        required: true,
+        type: String,
+        description: 'Search term',
+    })
+    @ApiQuery(ApiQueryDetails.page)
+    @ApiQuery(ApiQueryDetails.limit)
+    @ApiOkResponse({
+        description: 'Paginated matching channels',
+    })
+    public async searchChannels(
+        @Req() req: Request,
+        @Query() query: PaginationQuery & {
+            q: string
+        },
+    ): Promise<PaginatedChannelsResponse> {
+        const { page, limit } = this.parsePagination(query)
+        const { channels, ...rest } = await this.channelService.searchChannels({
+            q: query.q ?? '',
+            page,
+            limit,
+        } satisfies SearchChannelsQuery)
+
+        return this.toPaginatedResponse({
+            req,
+            channels,
+            rest,
+        })
     }
 
     @Get('channels/:id')
     @ApiOperation({
         summary: 'Get a channel with its current and daily programs',
-        description:
-            'Lookup a channel by its UUID or its xmlId. Returns the channel, the currently airing program (or null) and all programs of the given day (default today, FR timezone).',
     })
     @ApiParam({
         name: 'id',
@@ -92,11 +112,11 @@ export class ChannelController {
         name: 'day',
         required: false,
         type: String,
-        description: 'Target day as DD/MM/YYYY in Europe/Paris timezone. Defaults to today.',
+        description: 'DD/MM/YYYY (Europe/Paris)',
         example: '20/05/2026',
     })
     @ApiOkResponse({
-        description: 'Channel details with current and daily programs',
+        description: 'Channel with current and daily programs',
     })
     public async channelDetails(@Param('id') channelId: string, @Query('day') programDay?: string): Promise<ChannelDetailsResponse> {
         return this.channelService.getChannelDetails({
@@ -110,6 +130,21 @@ export class ChannelController {
             page: Math.max(1, Number(query.page) || 1),
             limit: Math.min(100, Number(query.limit) || 20),
             order: query.order === SortQuery.DESC ? SortQuery.DESC : SortQuery.ASC,
+        }
+    }
+
+    private toPaginatedResponse({ req, channels, rest }: PaginatedResponseOptions): PaginatedChannelsResponse {
+        const baseUrl = this.getBaseUrl(req)
+
+        return {
+            ...rest,
+            channels: channels.map((c) => ({
+                ...c,
+                urls: [
+                    `${baseUrl}/${c.xmlId}`,
+                    `${baseUrl}/${c.id}`,
+                ],
+            })),
         }
     }
 
