@@ -28,6 +28,24 @@ Process endpoint (`x-internal-cron` header is required) :
 - Update programs and channels every day at 1 AM
 - Get program details (score, poster, etc) from TMDB
 
+## Environment variables
+
+| Variable | Default |
+|---|---|
+| `DATABASE_HOST` | |
+| `DATABASE_PORT` | `5432` |
+| `DATABASE_USER` | |
+| `DATABASE_PASSWORD` | |
+| `DATABASE_NAME` | |
+| `PORT` | `3000` |
+| `THROTTLE_TTL` | `60000` |
+| `THROTTLE_LIMIT` | `10` |
+| `ALLOWED_FORWARD` | |
+| `TMDB_API_KEY` | |
+| `ENABLE_CRON` | `false` |
+
+> **`ENABLE_CRON=true` is recommended in production** to activate automatic daily updates.
+
 ## Project setup
 
 For easy command you can use [Just](https://github.com/casey/just).

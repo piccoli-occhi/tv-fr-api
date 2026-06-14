@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { APP_GUARD } from '@nestjs/core'
+import { ScheduleModule } from '@nestjs/schedule'
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { ApiController } from './api/api.controller'
@@ -22,6 +23,7 @@ import { XmlTvModule } from './xml-tv/xml-tv.module'
         ConfigModule.forRoot({
             isGlobal: true,
         }),
+        ...(process.env.ENABLE_CRON === 'true' ? [ScheduleModule.forRoot()] : []),
         TypeOrmModule.forRootAsync({
             inject: [ConfigService],
             useFactory: (config: ConfigService) => ({
