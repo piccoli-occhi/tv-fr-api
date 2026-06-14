@@ -8,7 +8,11 @@ export enum ChannelSortField {
 }
 
 export type PaginatedChannelsResponse = PaginatedResponse & {
-    channels: Array<Channel & { urls: string[] }>
+    channels: Array<
+        Channel & {
+            urls: string[]
+        }
+    >
 }
 
 export type ChannelDetailsResponse = {
@@ -35,4 +39,10 @@ export type ListChannelsResult = {
 export type GetChannelDetailsQuery = {
     channelId: string
     programDay?: string
+}
+
+export type SearchChannelsQuery = {
+    q: string
+    page: number
+    limit: number
 }

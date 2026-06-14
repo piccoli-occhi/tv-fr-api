@@ -8,9 +8,20 @@ export class ApiController {
     public constructor(private readonly apiService: ApiService) {}
 
     @Get('status')
-    @ApiOperation({ summary: 'Health check' })
-    @ApiOkResponse({ description: 'Service status', example: { status: 'ok', database: 'ok' } })
-    public status(): Promise<{ status: string; database: string }> {
+    @ApiOperation({
+        summary: 'Health check',
+    })
+    @ApiOkResponse({
+        description: 'Service status',
+        example: {
+            status: 'ok',
+            database: 'ok',
+        },
+    })
+    public status(): Promise<{
+        status: string
+        database: string
+    }> {
         return this.apiService.getStatus()
     }
 }

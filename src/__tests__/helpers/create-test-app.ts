@@ -6,20 +6,32 @@ import type { App } from 'supertest/types'
 import type { DataSourceOptions } from 'typeorm'
 import { createPgMemDataSource } from '@/__tests__/pg-mem-data-source'
 import { AppModule } from '@/app.module'
+import { TmdbDetails } from '@/tmdb/entities/tmdb-details.entity'
 import { Channel } from '@/xml-tv/entities/channel.entity'
 import { Program } from '@/xml-tv/entities/program.entity'
 
-export const createTestApp = async (): Promise<{ app: INestApplication<App>; module: TestingModule }> => {
+export const createTestApp = async (): Promise<{
+    app: INestApplication<App>
+    module: TestingModule
+}> => {
     const module: TestingModule = await Test.createTestingModule({
-        imports: [AppModule],
+        imports: [
+            AppModule,
+        ],
     })
         .overrideProvider(getDataSourceToken())
         .useFactory({
-            inject: [TYPEORM_MODULE_OPTIONS],
+            inject: [
+                TYPEORM_MODULE_OPTIONS,
+            ],
             factory: (options: DataSourceOptions) =>
                 createPgMemDataSource({
                     ...options,
-                    entities: [Channel, Program],
+                    entities: [
+                        Channel,
+                        Program,
+                        TmdbDetails,
+                    ],
                 } as DataSourceOptions),
         })
         .compile()
@@ -29,5 +41,8 @@ export const createTestApp = async (): Promise<{ app: INestApplication<App>; mod
     app.setGlobalPrefix('api')
     await app.init()
 
-    return { app, module }
+    return {
+        app,
+        module,
+    }
 }

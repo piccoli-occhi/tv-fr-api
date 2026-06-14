@@ -1,11 +1,11 @@
 import { TZDate } from '@date-fns/tz'
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { And, LessThan, LessThanOrEqual, MoreThan, MoreThanOrEqual, Repository } from 'typeorm'
+import { And, ILike, LessThan, LessThanOrEqual, MoreThan, MoreThanOrEqual, Repository } from 'typeorm'
 import { Channel } from '../../xml-tv/entities/channel.entity'
 import { Program } from '../../xml-tv/entities/program.entity'
 import { UUID_REGEX } from '../types'
-import { ChannelDetailsResponse, GetChannelDetailsQuery, ListChannelsQuery, ListChannelsResult } from './types'
+import { ChannelDetailsResponse, GetChannelDetailsQuery, ListChannelsQuery, ListChannelsResult, SearchChannelsQuery } from './types'
 
 @Injectable()
 export class ChannelService {
@@ -18,7 +18,30 @@ export class ChannelService {
 
     public async listChannels(query: ListChannelsQuery): Promise<ListChannelsResult> {
         const [channels, total] = await this.channelRepository.findAndCount({
-            order: { [query.sort]: query.order.toUpperCase() as 'ASC' | 'DESC' },
+            order: {
+                [query.sort]: query.order.toUpperCase() as 'ASC' | 'DESC',
+            },
+            skip: (query.page - 1) * query.limit,
+            take: query.limit,
+        })
+
+        return {
+            channels,
+            total,
+            totalPages: Math.ceil(total / query.limit),
+            count: channels.length,
+            limit: query.limit,
+        }
+    }
+
+    public async searchChannels(query: SearchChannelsQuery): Promise<ListChannelsResult> {
+        const [channels, total] = await this.channelRepository.findAndCount({
+            where: {
+                displayName: ILike(`%${query.q}%`),
+            },
+            order: {
+                displayName: 'ASC',
+            },
             skip: (query.page - 1) * query.limit,
             take: query.limit,
         })
@@ -36,7 +59,11 @@ export class ChannelService {
         const channel = await this.findChannel(query.channelId)
 
         const timezone = process.env.TZ || 'Europe/Paris'
-        const targetDay = query.programDay || new Intl.DateTimeFormat('fr-FR', { timeZone: timezone }).format(new Date())
+        const targetDay =
+            query.programDay ||
+            new Intl.DateTimeFormat('fr-FR', {
+                timeZone: timezone,
+            }).format(new Date())
         const { dayStart, dayEnd } = this.parseDayBoundaries(targetDay, timezone)
         const now = new Date()
 
@@ -53,16 +80,30 @@ export class ChannelService {
                     channelXmlId: channel.xmlId,
                     startAt: And(MoreThanOrEqual(dayStart), LessThan(dayEnd)),
                 },
-                order: { startAt: 'ASC' },
+                order: {
+                    startAt: 'ASC',
+                },
             }),
         ])
 
-        return { channel, currentProgram, dayPrograms }
+        return {
+            channel,
+            currentProgram,
+            dayPrograms,
+        }
     }
 
     private async findChannel(channelId: string): Promise<Channel> {
-        const where = UUID_REGEX.test(channelId) ? { id: channelId } : { xmlId: channelId }
-        const channel = await this.channelRepository.findOne({ where })
+        const where = UUID_REGEX.test(channelId)
+            ? {
+                  id: channelId,
+              }
+            : {
+                  xmlId: channelId,
+              }
+        const channel = await this.channelRepository.findOne({
+            where,
+        })
 
         if (channel) {
             return channel
@@ -71,7 +112,13 @@ export class ChannelService {
         throw new NotFoundException(`Channel not found: ${channelId}`)
     }
 
-    private parseDayBoundaries(day: string, timezone: string): { dayStart: Date; dayEnd: Date } {
+    private parseDayBoundaries(
+        day: string,
+        timezone: string,
+    ): {
+        dayStart: Date
+        dayEnd: Date
+    } {
         const [d, m, y] = day.split('/').map(Number)
 
         return {

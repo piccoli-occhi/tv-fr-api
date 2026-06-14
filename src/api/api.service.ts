@@ -9,13 +9,22 @@ export class ApiService {
         private readonly dataSource: DataSource,
     ) {}
 
-    public async getStatus(): Promise<{ status: string; database: string }> {
+    public async getStatus(): Promise<{
+        status: string
+        database: string
+    }> {
         try {
             await this.dataSource.query('SELECT 1')
 
-            return { status: 'ok', database: 'ok' }
+            return {
+                status: 'ok',
+                database: 'ok',
+            }
         } catch {
-            return { status: 'degraded', database: 'down' }
+            return {
+                status: 'degraded',
+                database: 'down',
+            }
         }
     }
 }

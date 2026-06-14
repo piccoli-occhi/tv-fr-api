@@ -32,8 +32,14 @@ describe('XMLParser', () => {
             channelXmlId: 'tf1.fr',
             xmlStart: '20260520201500 +0200',
             xmlStop: '20260520213000 +0200',
-            categories: ['News', 'Information'],
-            credits: ['Anne Dupont', 'Paul Martin'],
+            categories: [
+                'News',
+                'Information',
+            ],
+            credits: [
+                'Anne Dupont',
+                'Paul Martin',
+            ],
             icon: 'https://example.com/journal.png',
             ratingIcon: 'https://example.com/tp.png',
             rating: 'TP',

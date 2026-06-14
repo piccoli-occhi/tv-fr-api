@@ -28,7 +28,8 @@
         "formatter": {
             "semicolons": "asNeeded",
             "quoteStyle": "single",
-            "trailingCommas": "all"
+            "trailingCommas": "all",
+            "expand": "always"
         },
         "parser": {
             "unsafeParameterDecoratorsEnabled": true

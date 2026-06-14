@@ -6,53 +6,113 @@ export class Program {
     @PrimaryGeneratedColumn('uuid')
     public id: string
 
-    @Column({ type: 'varchar', nullable: false })
+    @Column({
+        type: 'varchar',
+        nullable: false,
+    })
     public title: string
 
-    @Column({ type: 'text', nullable: true })
+    @Column({
+        type: 'text',
+        nullable: true,
+    })
     public subTitle: string | null
 
-    @Column({ type: 'text', nullable: true })
+    @Column({
+        type: 'text',
+        nullable: true,
+    })
     public desc: string | null
 
-    @Column({ type: 'varchar', nullable: false })
+    @Column({
+        type: 'varchar',
+        nullable: false,
+    })
     public xmlStart: string
 
-    @Column({ type: 'varchar', nullable: false })
+    @Column({
+        type: 'varchar',
+        nullable: false,
+    })
     public xmlStop: string
 
-    @Column({ type: 'timestamptz', nullable: false })
+    @Column({
+        type: 'timestamptz',
+        nullable: false,
+    })
     public startAt: Date
 
-    @Column({ type: 'timestamptz', nullable: false })
+    @Column({
+        type: 'timestamptz',
+        nullable: false,
+    })
     public stopAt: Date
 
-    @Column({ type: 'varchar', nullable: true })
+    @Column({
+        type: 'varchar',
+        nullable: true,
+    })
     public ratingIcon: string | null
 
-    @Column({ type: 'varchar', nullable: true })
+    @Column({
+        type: 'varchar',
+        nullable: true,
+    })
     public icon: string | null
 
-    @Column({ type: 'varchar', nullable: true })
+    @Column({
+        type: 'varchar',
+        nullable: true,
+    })
     public episode: string | null
 
-    @Column({ type: 'varchar', nullable: true })
+    @Column({
+        type: 'varchar',
+        nullable: true,
+    })
     public rating: string | null
 
-    @Column({ type: 'varchar', array: true, default: [] })
+    @Column({
+        type: 'varchar',
+        array: true,
+        default: [],
+    })
     public categories: string[]
 
-    @Column({ type: 'varchar', array: true, default: [] })
+    @Column({
+        type: 'varchar',
+        array: true,
+        default: [],
+    })
     public credits: string[]
 
-    @Column({ type: 'varchar', nullable: false })
+    @Column({
+        type: 'varchar',
+        nullable: false,
+    })
     public channelXmlId: string
 
     @ManyToOne(
         () => Channel,
         (channel) => channel.programs,
-        { nullable: false, onDelete: 'CASCADE' },
+        {
+            nullable: false,
+            onDelete: 'CASCADE',
+        },
     )
-    @JoinColumn({ name: 'channelXmlId', referencedColumnName: 'xmlId' })
+    @JoinColumn({
+        name: 'channelXmlId',
+        referencedColumnName: 'xmlId',
+    })
     public channel: Channel
+
+    public get isSerie(): boolean {
+        return this.categories.some((c) => {
+            return [
+                'Série',
+                'Téléréalité',
+                'Kids',
+            ].includes(c)
+        })
+    }
 }

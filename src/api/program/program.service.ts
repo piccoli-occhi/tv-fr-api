@@ -14,10 +14,18 @@ export class ProgramService {
     ) {}
 
     public async getProgramById(id: string): Promise<Program> {
-        const where = UUID_REGEX.test(id) ? { id } : { xmlId: id }
+        const where = UUID_REGEX.test(id)
+            ? {
+                  id,
+              }
+            : {
+                  xmlId: id,
+              }
         const program = await this.programRepository.findOne({
             where,
-            relations: { channel: true },
+            relations: {
+                channel: true,
+            },
         })
 
         if (program) {
@@ -34,10 +42,14 @@ export class ProgramService {
                 startAt: LessThanOrEqual(now),
                 stopAt: MoreThan(now),
             },
-            order: { [query.sort]: query.order.toUpperCase() as 'ASC' | 'DESC' },
+            order: {
+                [query.sort]: query.order.toUpperCase() as 'ASC' | 'DESC',
+            },
             skip: (query.page - 1) * query.limit,
             take: query.limit,
-            relations: { channel: true },
+            relations: {
+                channel: true,
+            },
         })
 
         return {
@@ -60,10 +72,14 @@ export class ProgramService {
                 startAt: LessThanOrEqual(dayEnd),
                 stopAt: MoreThan(dayStart),
             },
-            order: { startAt: 'ASC' },
+            order: {
+                startAt: 'ASC',
+            },
             skip: (query.page - 1) * query.limit,
             take: query.limit,
-            relations: { channel: true },
+            relations: {
+                channel: true,
+            },
         })
 
         return {

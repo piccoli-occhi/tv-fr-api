@@ -6,8 +6,17 @@ import { XmlTvController } from './xml-tv.controller'
 import { XmlTvService } from './xml-tv.service'
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Channel, Program])],
-    controllers: [XmlTvController],
-    providers: [XmlTvService],
+    imports: [
+        TypeOrmModule.forFeature([
+            Channel,
+            Program,
+        ]),
+    ],
+    controllers: [
+        XmlTvController,
+    ],
+    providers: [
+        XmlTvService,
+    ],
 })
 export class XmlTvModule {}

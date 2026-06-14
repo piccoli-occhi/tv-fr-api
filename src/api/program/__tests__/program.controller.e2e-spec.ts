@@ -23,7 +23,11 @@ describe('ProgramController', () => {
         await programRepository.createQueryBuilder().delete().execute()
         await channelRepository.createQueryBuilder().delete().execute()
 
-        await channelRepository.save({ xmlId: 'program-channel', displayName: 'Test Channel', icon: null })
+        await channelRepository.save({
+            xmlId: 'program-channel',
+            displayName: 'Test Channel',
+            icon: null,
+        })
     })
 
     afterEach(async () => {
@@ -58,8 +62,16 @@ describe('ProgramController', () => {
             const now = Date.now()
 
             await channelRepository.save([
-                { xmlId: 'channel-1', displayName: 'Channel One', icon: null },
-                { xmlId: 'channel-2', displayName: 'Channel Two', icon: 'https://example.com/icon.png' },
+                {
+                    xmlId: 'channel-1',
+                    displayName: 'Channel One',
+                    icon: null,
+                },
+                {
+                    xmlId: 'channel-2',
+                    displayName: 'Channel Two',
+                    icon: 'https://example.com/icon.png',
+                },
             ])
 
             await programRepository.save([
@@ -95,7 +107,10 @@ describe('ProgramController', () => {
             expect(response.body.total).toBe(2)
             expect(response.body.count).toBe(2)
             expect(response.body.programs).toHaveLength(2)
-            expect(programs.map((p: Program) => p.title).sort()).toEqual(['Current show A', 'Current show B'])
+            expect(programs.map((p: Program) => p.title).sort()).toEqual([
+                'Current show A',
+                'Current show B',
+            ])
             expect(programs.at(0)?.channel.displayName).toEqual('Channel Two')
             expect(programs.at(1)?.channel.displayName).toEqual('Channel Two')
         })
@@ -168,7 +183,10 @@ describe('ProgramController', () => {
             expect(response.body.total).toBe(2)
             expect(response.body.count).toBe(2)
             expect(response.body.programs).toHaveLength(2)
-            expect(response.body.programs.map((p: Program) => p.title)).toEqual(['Today show 1', 'Today show 2'])
+            expect(response.body.programs.map((p: Program) => p.title)).toEqual([
+                'Today show 1',
+                'Today show 2',
+            ])
         })
 
         test('returns programs sorted by startAt in ascending order', async () => {
@@ -198,7 +216,11 @@ describe('ProgramController', () => {
             const response = await request(app.getHttpServer()).get(`/api/programs/${dayStr}`).expect(200)
             const programs = response.body.programs as Program[]
 
-            expect(programs.map((p: Program) => p.title)).toEqual(['Show at 08:00', 'Show at 14:00', 'Show at 20:00'])
+            expect(programs.map((p: Program) => p.title)).toEqual([
+                'Show at 08:00',
+                'Show at 14:00',
+                'Show at 20:00',
+            ])
         })
 
         test('supports pagination', async () => {

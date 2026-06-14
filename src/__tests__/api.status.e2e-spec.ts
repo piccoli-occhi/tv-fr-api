@@ -16,6 +16,9 @@ describe('GET /api/status (e2e)', () => {
     })
 
     test('returns ok status', () => {
-        return request(app.getHttpServer()).get('/api/status').expect(200).expect({ status: 'ok', database: 'ok' })
+        return request(app.getHttpServer()).get('/api/status').expect(200).expect({
+            status: 'ok',
+            database: 'ok',
+        })
     })
 })

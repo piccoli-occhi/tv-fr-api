@@ -28,7 +28,9 @@ export class XmlTvController {
 
         this.downloadXML()
 
-        return { status: 'ok' }
+        return {
+            status: 'ok',
+        }
     }
 
     public async downloadXML() {

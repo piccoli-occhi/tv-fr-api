@@ -27,7 +27,9 @@ export class ProgramController {
         name: 'id',
         description: 'Program UUID',
     })
-    @ApiOkResponse({ description: 'Program details' })
+    @ApiOkResponse({
+        description: 'Program details',
+    })
     public async program(@Param('id') programId: string) {
         return this.programService.getProgramById(programId)
     }
@@ -51,10 +53,17 @@ export class ProgramController {
             example: SortQuery.ASC,
         }),
     )
-    @ApiOkResponse({ description: 'Paginated list of current programs' })
+    @ApiOkResponse({
+        description: 'Paginated list of current programs',
+    })
     public async now(@Query() query: PaginationQuery<ProgramSortField>): Promise<PaginatedProgramsResponse> {
         const { page, limit, sort, order } = this.parsePagination(query)
-        const result = await this.programService.listCurrentPrograms({ page, limit, sort, order })
+        const result = await this.programService.listCurrentPrograms({
+            page,
+            limit,
+            sort,
+            order,
+        })
 
         return result
     }

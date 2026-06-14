@@ -3,7 +3,9 @@ import { DataType, newDb } from 'pg-mem'
 import type { DataSource, DataSourceOptions } from 'typeorm'
 
 export const createPgMemDataSource = async (options?: DataSourceOptions): Promise<DataSource> => {
-    const db = newDb({ autoCreateForeignKeyIndices: true })
+    const db = newDb({
+        autoCreateForeignKeyIndices: true,
+    })
 
     db.public.registerFunction({
         name: 'version',
