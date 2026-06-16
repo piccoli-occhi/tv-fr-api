@@ -10,6 +10,8 @@ import { ChannelController } from './api/channel/channel.controller'
 import { ChannelService } from './api/channel/channel.service'
 import { ProgramController } from './api/program/program.controller'
 import { ProgramService } from './api/program/program.service'
+import { SearxngController } from './searxng/searxng.controller'
+import { SearxngService } from './searxng/searxng.service'
 import { ProgramSubscriber } from './tmdb/entities/program-details-subscriber'
 import { TmdbDetails } from './tmdb/entities/tmdb-details.entity'
 import { TmdbController } from './tmdb/tmdb.controller'
@@ -72,6 +74,7 @@ import { XmlTvModule } from './xml-tv/xml-tv.module'
         ChannelController,
         ProgramController,
         TmdbController,
+        SearxngController,
     ],
     providers: [
         ApiService,
@@ -82,6 +85,7 @@ import { XmlTvModule } from './xml-tv/xml-tv.module'
             useClass: ThrottlerGuard,
         },
         TmdbService,
+        SearxngService,
     ],
 })
 export class AppModule {}

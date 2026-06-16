@@ -58,6 +58,20 @@ export class TmdbDetails {
     })
     public poster: string | null
 
+    @Column({
+        type: 'varchar',
+        nullable: true,
+        default: null,
+    })
+    public secondaryPoster: string | null
+
+    @Column({
+        type: 'timestamptz',
+        nullable: true,
+        default: null,
+    })
+    public searxngSearchedAt: Date | null
+
     public tmdbUrl: string | null
 
     @AfterLoad()
