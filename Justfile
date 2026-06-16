@@ -1,3 +1,5 @@
+set dotenv-load
+
 install:
     npm install
     npx lefthook install
@@ -40,3 +42,6 @@ tmdb_sync title="":
 
 fx endpoint="/api/status":
     curl "http://localhost:3000{{endpoint}}" | fx
+
+adminer:
+    open "http://localhost:8080/?pgsql=${DATABASE_HOST:-tv-api-db}&username=${DATABASE_USER:-tvfr}&db=${DATABASE_NAME:-tvfr}"
