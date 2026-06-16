@@ -1,4 +1,4 @@
-import { Controller, Get, Query, UseInterceptors } from '@nestjs/common'
+import { Controller, Get, HttpCode, HttpException, HttpStatus, Query, UseInterceptors } from '@nestjs/common'
 import { Cron, CronExpression } from '@nestjs/schedule'
 import { ApiOkResponse, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger'
 import { HeaderInterceptor } from '@/xml-tv/xml-tv.interceptor'
@@ -24,11 +24,25 @@ export class SearxngController {
     @ApiOkResponse({
         description: 'Sync triggered',
     })
-    public async syncPosters(@Query('title') title?: string): Promise<void> {
-        if (title) {
-            await this.searxngService.syncOnePoster(title)
-        } else {
-            this.searxngService.syncPosters()
+    @HttpCode(HttpStatus.OK)
+    public syncPosters(@Query('title') title?: string) {
+        try {
+            if (title) {
+                this.searxngService.syncOnePoster(title)
+            } else {
+                this.searxngService.syncPosters()
+            }
+
+            return {
+                status: 'ok',
+            }
+        } catch {
+            throw new HttpException(
+                {
+                    status: 'failed',
+                },
+                HttpStatus.INTERNAL_SERVER_ERROR,
+            )
         }
     }
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, Query, UseInterceptors } from '@nestjs/common'
+import { Controller, Get, HttpCode, HttpException, HttpStatus, Query, UseInterceptors } from '@nestjs/common'
 import { Cron, CronExpression } from '@nestjs/schedule'
 import { ApiOkResponse, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger'
 import { HeaderInterceptor } from '@/xml-tv/xml-tv.interceptor'
@@ -36,12 +36,26 @@ export class TmdbController {
     @ApiOkResponse({
         description: 'Sync completed',
     })
-    public async syncProgramScores(@Query('title') title?: string): Promise<void> {
-        if (title) {
-            await this.tmdbService.syncOneProgram(title)
-        } else {
-            await this.tmdbService.syncTntPrograms()
-            await this.tmdbService.syncOtherPrograms()
+    @HttpCode(HttpStatus.OK)
+    public syncProgramScores(@Query('title') title?: string) {
+        try {
+            if (title) {
+                this.tmdbService.syncOneProgram(title)
+            } else {
+                this.tmdbService.syncTntPrograms()
+                this.tmdbService.syncOtherPrograms()
+            }
+
+            return {
+                status: 'ok',
+            }
+        } catch {
+            throw new HttpException(
+                {
+                    status: 'failed',
+                },
+                HttpStatus.INTERNAL_SERVER_ERROR,
+            )
         }
     }
 }

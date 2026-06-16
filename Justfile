@@ -1,4 +1,5 @@
 set dotenv-load
+set quiet
 
 install:
     npm install
@@ -50,6 +51,10 @@ sear title="":
             -H "x-internal-cron: tv-api"; \
     fi
 
+do title="":
+    just sync "{{title}}"
+    just sear "{{title}}"
+    
 fx endpoint="/api/status":
     curl "http://localhost:3000{{endpoint}}" | fx
 

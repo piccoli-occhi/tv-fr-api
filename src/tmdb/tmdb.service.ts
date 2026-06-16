@@ -68,7 +68,7 @@ export class TmdbService {
             })
 
             if (!program) {
-                this.logger.error(`action=sync_program, status=failed, reason=program_not_found`)
+                this.logger.log(`action=sync_program, status=not_found, title=${title}`)
 
                 return
             }

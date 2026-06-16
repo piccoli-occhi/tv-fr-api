@@ -31,7 +31,8 @@ export class SearxngService {
         })
 
         if (!details) {
-            this.logger.error(`action=sync_one_poster, status=failed, reason=not_found, title=${title}`)
+            this.logger.log(`action=sync_one_poster, status=not_found, title=${title}`)
+
             return
         }
 
