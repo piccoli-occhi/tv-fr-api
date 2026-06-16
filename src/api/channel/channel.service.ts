@@ -62,7 +62,7 @@ export class ChannelService {
         })
 
         return {
-            channels: await this.getChannelCurrentPrograms(channels),
+            channels: await this.getChannelsWithPrograms(channels),
             total,
             totalPages: Math.ceil(total / query.limit),
             count: channels.length,
@@ -83,7 +83,7 @@ export class ChannelService {
         })
 
         return {
-            channels,
+            channels: await this.getChannelsWithPrograms(channels),
             total,
             totalPages: Math.ceil(total / query.limit),
             count: channels.length,
@@ -98,7 +98,7 @@ export class ChannelService {
 
         const sorted = channels.sort((a, b) => TNT_CHANNELS.indexOf(a.displayName) - TNT_CHANNELS.indexOf(b.displayName))
 
-        return this.getChannelCurrentPrograms(sorted)
+        return this.getChannelsWithPrograms(sorted)
     }
 
     public async getChannelDetails(query: GetChannelDetailsQuery): Promise<ChannelDetailsResponse> {
@@ -139,7 +139,7 @@ export class ChannelService {
         }
     }
 
-    private async getChannelCurrentPrograms(channels: Channel[]): Promise<ChannelWithCurrent[]> {
+    private async getChannelsWithPrograms(channels: Channel[]): Promise<ChannelWithCurrent[]> {
         if (channels.length === 0) return []
 
         const now = new Date()
