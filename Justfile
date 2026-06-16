@@ -26,11 +26,11 @@ run_cron:
     curl -X GET "http://localhost:3000/api/xml-tv/run" \
         -H "x-internal-cron: tv-api"
 
-tmdb_init:
+init:
     curl -X GET "http://localhost:3000/api/tmdb/init" \
         -H "x-internal-cron: tv-api"
 
-tmdb_sync title="":
+sync title="":
     if [ -n "{{title}}" ]; then \
         curl -G "http://localhost:3000/api/tmdb/sync" \
             -H "x-internal-cron: tv-api" \
@@ -39,6 +39,10 @@ tmdb_sync title="":
         curl -X GET "http://localhost:3000/api/tmdb/sync" \
             -H "x-internal-cron: tv-api"; \
     fi
+
+sear:
+    curl -X GET "http://localhost:3000/api/searxng/sync" \
+        -H "x-internal-cron: tv-api"
 
 fx endpoint="/api/status":
     curl "http://localhost:3000{{endpoint}}" | fx
