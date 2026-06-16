@@ -14,7 +14,7 @@ import { UUID_REGEX } from '@/api/types'
 import { Channel } from '@/xml-tv/entities/channel.entity'
 import { Program } from '@/xml-tv/entities/program.entity'
 
-const TNT_CHANNELS = [
+export const TNT_CHANNELS = [
     'TF1',
     'France 2',
     'France 3',

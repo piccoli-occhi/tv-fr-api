@@ -40,7 +40,8 @@ export class TmdbController {
         if (title) {
             await this.tmdbService.syncOneProgram(title)
         } else {
-            await this.tmdbService.syncPrograms()
+            await this.tmdbService.syncTntPrograms()
+            await this.tmdbService.syncOtherPrograms()
         }
     }
 }

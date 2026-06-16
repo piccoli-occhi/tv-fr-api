@@ -7,6 +7,7 @@ import type { App } from 'supertest/types'
 import type { Repository } from 'typeorm'
 import { createTestApp } from '@/__tests__/helpers/create-test-app'
 import { buildProgram } from '@/__tests__/helpers/program-test.helper'
+import { MediaType } from '@/tmdb/entities/media-type.enum'
 import { TmdbDetails } from '@/tmdb/entities/tmdb-details.entity'
 import { TmdbService } from '@/tmdb/tmdb.service'
 import { Channel } from '@/xml-tv/entities/channel.entity'
@@ -47,7 +48,7 @@ describe('TmdbController (e2e)', () => {
     })
 
     describe('GET /api/tmdb/sync', () => {
-        test('creates TmdbDetails for a a movie', async () => {
+        test('creates TmdbDetails for a movie when searchMovie matches', async () => {
             const now = Date.now()
             const oneHour = 60 * 60 * 1000
 
@@ -88,14 +89,17 @@ describe('TmdbController (e2e)', () => {
             })
             expect(details).not.toBeNull()
             expect(Number(details?.tmdbId)).toBe(10)
-            expect(details?.isMovie).toBe(true)
+            expect(details?.mediaType).toBe(MediaType.Movie)
             expect(details?.originalName).toBe('current movie')
         })
 
-        test('creates TmdbDetails for a serie', async () => {
+        test('creates TmdbDetails for a serie when searchMovie returns nothing and searchTv matches', async () => {
             const now = Date.now()
             const oneHour = 60 * 60 * 1000
 
+            vi.spyOn(MovieDb.prototype, 'searchMovie').mockResolvedValue({
+                results: [],
+            })
             vi.spyOn(MovieDb.prototype, 'searchTv').mockResolvedValue({
                 results: [
                     {
@@ -115,17 +119,14 @@ describe('TmdbController (e2e)', () => {
                 displayName: 'Test Channel',
                 icon: null,
             })
-            await programRepository.save({
-                ...buildProgram({
+            await programRepository.save(
+                buildProgram({
                     title: 'current serie',
                     channelXmlId: 'test-channel',
                     start: new Date(now - oneHour),
                     stop: new Date(now + oneHour),
                 }),
-                categories: [
-                    'Série',
-                ],
-            })
+            )
 
             await request(app.getHttpServer()).get('/api/tmdb/sync').expect(200)
 
@@ -136,7 +137,7 @@ describe('TmdbController (e2e)', () => {
             })
             expect(details).not.toBeNull()
             expect(Number(details?.tmdbId)).toBe(20)
-            expect(details?.isMovie).toBe(false)
+            expect(details?.mediaType).toBe(MediaType.TV)
             expect(details?.originalName).toBe('current serie')
         })
     })
@@ -180,11 +181,14 @@ describe('TmdbController (e2e)', () => {
             })
             expect(details).not.toBeNull()
             expect(Number(details?.tmdbId)).toBe(42)
-            expect(details?.isMovie).toBe(true)
+            expect(details?.mediaType).toBe(MediaType.Movie)
             expect(details?.originalName).toBe('the godfather')
         })
 
-        test('creates TmdbDetails for a TV series program when a TMDB match is found', async () => {
+        test('creates TmdbDetails for a TV series program when searchMovie returns nothing and searchTv matches', async () => {
+            vi.spyOn(MovieDb.prototype, 'searchMovie').mockResolvedValue({
+                results: [],
+            })
             vi.spyOn(MovieDb.prototype, 'searchTv').mockResolvedValue({
                 results: [
                     {
@@ -204,17 +208,14 @@ describe('TmdbController (e2e)', () => {
                 displayName: 'Test Channel',
                 icon: null,
             })
-            await programRepository.save({
-                ...buildProgram({
+            await programRepository.save(
+                buildProgram({
                     title: 'the wire',
                     channelXmlId: 'test-channel',
                     start: new Date(Date.now() - 60 * 60 * 1000),
                     stop: new Date(Date.now() + 60 * 60 * 1000),
                 }),
-                categories: [
-                    'Série',
-                ],
-            })
+            )
 
             await request(app.getHttpServer()).get('/api/tmdb/sync?title=the+wire').expect(200)
 
@@ -225,12 +226,15 @@ describe('TmdbController (e2e)', () => {
             })
             expect(details).not.toBeNull()
             expect(Number(details?.tmdbId)).toBe(99)
-            expect(details?.isMovie).toBe(false)
+            expect(details?.mediaType).toBe(MediaType.TV)
             expect(details?.originalName).toBe('the wire')
         })
 
-        test('does not create TmdbDetails when no TMDB match is found', async () => {
+        test('does not create TmdbDetails when neither searchMovie nor searchTv match', async () => {
             vi.spyOn(MovieDb.prototype, 'searchMovie').mockResolvedValue({
+                results: [],
+            })
+            vi.spyOn(MovieDb.prototype, 'searchTv').mockResolvedValue({
                 results: [],
             })
 
@@ -241,21 +245,177 @@ describe('TmdbController (e2e)', () => {
             })
             await programRepository.save(
                 buildProgram({
-                    title: 'unknown movie',
+                    title: 'unknown title',
                     channelXmlId: 'test-channel',
                     start: new Date(Date.now() - 60 * 60 * 1000),
                     stop: new Date(Date.now() + 60 * 60 * 1000),
                 }),
             )
 
-            await request(app.getHttpServer()).get('/api/tmdb/sync?title=unknown+movie').expect(200)
+            await request(app.getHttpServer()).get('/api/tmdb/sync?title=unknown+title').expect(200)
 
             const details = await tmdbDetailsRepository.findOne({
                 where: {
-                    title: 'unknown movie',
+                    title: 'unknown title',
                 },
             })
             expect(details).toBeNull()
+        })
+
+        test('calls searchTv directly on second sync when mediaType is already tv', async () => {
+            const searchTv = vi.spyOn(MovieDb.prototype, 'searchTv').mockResolvedValue({
+                results: [
+                    {
+                        id: 77,
+                        media_type: 'tv',
+                        name: 'breaking bad',
+                        original_name: 'breaking bad',
+                        vote_average: 9.5,
+                        vote_count: 12000,
+                        poster_path: '/bb.jpg',
+                    },
+                ],
+            })
+            const searchMovie = vi.spyOn(MovieDb.prototype, 'searchMovie')
+
+            await channelRepository.save({
+                xmlId: 'test-channel',
+                displayName: 'Test Channel',
+                icon: null,
+            })
+            await programRepository.save(
+                buildProgram({
+                    title: 'breaking bad',
+                    channelXmlId: 'test-channel',
+                    start: new Date(Date.now() - 60 * 60 * 1000),
+                    stop: new Date(Date.now() + 60 * 60 * 1000),
+                }),
+            )
+            await tmdbDetailsRepository.save({
+                title: 'breaking bad',
+                mediaType: MediaType.TV,
+                tmdbId: null,
+                originalName: null,
+                popularity: null,
+                voteCount: null,
+                poster: null,
+            })
+
+            await request(app.getHttpServer()).get('/api/tmdb/sync?title=breaking+bad').expect(200)
+
+            expect(searchTv).toHaveBeenCalled()
+            expect(searchMovie).not.toHaveBeenCalled()
+
+            const details = await tmdbDetailsRepository.findOne({
+                where: {
+                    title: 'breaking bad',
+                },
+            })
+            expect(details?.mediaType).toBe(MediaType.TV)
+            expect(Number(details?.tmdbId)).toBe(77)
+        })
+
+        test('calls searchMovie directly on second sync when mediaType is already movie', async () => {
+            const searchMovie = vi.spyOn(MovieDb.prototype, 'searchMovie').mockResolvedValue({
+                results: [
+                    {
+                        id: 88,
+                        media_type: 'movie',
+                        title: 'inception',
+                        original_title: 'inception',
+                        vote_average: 8.8,
+                        vote_count: 20000,
+                        poster_path: '/inception.jpg',
+                    },
+                ],
+            })
+            const searchTv = vi.spyOn(MovieDb.prototype, 'searchTv')
+
+            await channelRepository.save({
+                xmlId: 'test-channel',
+                displayName: 'Test Channel',
+                icon: null,
+            })
+            await programRepository.save(
+                buildProgram({
+                    title: 'inception',
+                    channelXmlId: 'test-channel',
+                    start: new Date(Date.now() - 60 * 60 * 1000),
+                    stop: new Date(Date.now() + 60 * 60 * 1000),
+                }),
+            )
+            await tmdbDetailsRepository.save({
+                title: 'inception',
+                mediaType: MediaType.Movie,
+                tmdbId: null,
+                originalName: null,
+                popularity: null,
+                voteCount: null,
+                poster: null,
+            })
+
+            await request(app.getHttpServer()).get('/api/tmdb/sync?title=inception').expect(200)
+
+            expect(searchMovie).toHaveBeenCalled()
+            expect(searchTv).not.toHaveBeenCalled()
+
+            const details = await tmdbDetailsRepository.findOne({
+                where: {
+                    title: 'inception',
+                },
+            })
+            expect(details?.mediaType).toBe(MediaType.Movie)
+            expect(Number(details?.tmdbId)).toBe(88)
+        })
+    })
+
+    describe('syncTntPrograms / syncOtherPrograms', () => {
+        const now = Date.now()
+        const oneHour = 60 * 60 * 1000
+
+        beforeEach(async () => {
+            await channelRepository.save([
+                {
+                    xmlId: 'tf1',
+                    displayName: 'TF1',
+                    icon: null,
+                },
+                {
+                    xmlId: 'other',
+                    displayName: 'Other Channel',
+                    icon: null,
+                },
+            ])
+            await programRepository.save([
+                buildProgram({
+                    title: 'tnt show',
+                    channelXmlId: 'tf1',
+                    start: new Date(now - oneHour),
+                    stop: new Date(now + oneHour),
+                }),
+                buildProgram({
+                    title: 'other show',
+                    channelXmlId: 'other',
+                    start: new Date(now - oneHour),
+                    stop: new Date(now + oneHour),
+                }),
+            ])
+        })
+
+        test('syncTntPrograms ne sync pas les chaines hors TNT', async () => {
+            const spy = vi.spyOn(tmdbService, 'syncOneProgram').mockResolvedValue()
+            await tmdbService.syncTntPrograms()
+            const synced = spy.mock.calls.map(([t]) => t)
+            expect(synced).toContain('tnt show')
+            expect(synced).not.toContain('other show')
+        })
+
+        test('syncOtherPrograms ne sync pas les chaines TNT', async () => {
+            const spy = vi.spyOn(tmdbService, 'syncOneProgram').mockResolvedValue()
+            await tmdbService.syncOtherPrograms()
+            const synced = spy.mock.calls.map(([t]) => t)
+            expect(synced).toContain('other show')
+            expect(synced).not.toContain('tnt show')
         })
     })
 
@@ -372,7 +532,7 @@ describe('TmdbController (e2e)', () => {
             await tmdbDetailsRepository.save({
                 title: 'Known Movie',
                 tmdbId: 42,
-                isMovie: true,
+                mediaType: MediaType.Movie,
                 originalName: 'Known Movie',
                 popularity: 8.0,
                 voteCount: 1000,

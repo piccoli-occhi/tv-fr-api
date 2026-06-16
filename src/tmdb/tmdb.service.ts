@@ -1,8 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { MovieDb, MovieResult, TvResult } from 'moviedb-promise'
-import { LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm'
+import { In, LessThanOrEqual, MoreThanOrEqual, Not, Repository } from 'typeorm'
+import { TNT_CHANNELS } from '@/api/channel/channel.service'
 import { ProgramService } from '@/api/program/program.service'
+import { MediaType } from '@/tmdb/entities/media-type.enum'
 import { TmdbDetails } from '@/tmdb/entities/tmdb-details.entity'
 import { Program } from '@/xml-tv/entities/program.entity'
 
@@ -59,8 +61,6 @@ export class TmdbService {
         this.logger.log(`action=handle_new_programs, status=finished`)
     }
 
-    // MERDE
-
     public async syncOneProgram(title: string): Promise<void> {
         try {
             const program = await this.programRepository.findOne({
@@ -70,24 +70,58 @@ export class TmdbService {
             })
 
             if (!program) {
-                this.logger.error(`action=sync_program,status=failed,reason=program_not_found`)
+                this.logger.error(`action=sync_program, status=failed, reason=program_not_found`)
+
                 return
             }
 
-            const result = program.isSerie ? await this.findTvShow(title) : await this.findMovie(title)
+            const existingDetails = await this.tmdbDetails.findOne({
+                where: {
+                    title,
+                },
+            })
 
-            if (!result?.id) {
-                this.logger.log(`action=sync_program,title=${title},status=not_found`)
+            const existingMediaType = existingDetails?.mediaType ?? null
+
+            let result: TvResult | MovieResult | undefined
+            let mediaType: MediaType | undefined
+
+            if (existingMediaType === MediaType.TV) {
+                result = await this.findTvShow(title)
+                mediaType = MediaType.TV
+            } else if (existingMediaType === MediaType.Movie) {
+                result = await this.findMovie(title)
+                mediaType = MediaType.Movie
+            } else {
+                const movieResult = await this.findMovie(title)
+
+                if (movieResult) {
+                    result = movieResult
+                    mediaType = MediaType.Movie
+                } else {
+                    const tvResult = await this.findTvShow(title)
+
+                    if (tvResult) {
+                        result = tvResult
+                        mediaType = MediaType.TV
+                    }
+                }
+            }
+
+            if (!result?.id || !mediaType) {
+                this.logger.log(`action=sync_program, title=${title}, status=not_found`)
+
                 return
             }
 
             const details = this.createTmdbDetails({
                 result,
-                isMovie: !program.isSerie,
+                mediaType,
             })
 
             if (!details.tmdbId) {
-                this.logger.log(`action=sync_program,title=${title},status=invalid_tmdb_id`)
+                this.logger.log(`action=sync_program, title=${title}, status=invalid_tmdb_id`)
+
                 return
             }
 
@@ -99,40 +133,69 @@ export class TmdbService {
                 ],
             })
 
-            this.logger.log(`action=sync_program,title=${title},tmdb_id=${details.tmdbId},status=success`)
+            this.logger.log(`action=sync_program, title=${title}, tmdb_id=${details.tmdbId}, status=success`)
         } catch (e) {
-            this.logger.error(`action=sync_program,status=failed,reason=${e}`)
+            this.logger.error(`action=sync_program, status=failed, reason=${e}`)
         }
     }
 
-    // MERDE
-
-    public async syncPrograms() {
+    public async syncTntPrograms() {
         const now = new Date()
 
-        const nowPrograms = await this.programRepository.find({
+        const programs = await this.programRepository.find({
             where: {
                 startAt: LessThanOrEqual(now),
                 stopAt: MoreThanOrEqual(now),
+                channel: {
+                    displayName: In(TNT_CHANNELS),
+                },
             },
+            relations: [
+                'channel',
+            ],
+        })
+
+        const titles = [
+            ...new Set(programs.map((v) => v.title)),
+        ]
+
+        this.logger.log(`action=sync_tnt_programs, count=${titles.length}`)
+
+        if (titles.length > 0) {
+            await Promise.all(titles.map((t) => this.syncOneProgram(t)))
+        }
+
+        this.logger.log(`action=sync_tnt_programs, count=${titles.length}, status=finished`)
+    }
+
+    public async syncOtherPrograms() {
+        const now = new Date()
+
+        const programs = await this.programRepository.find({
+            where: {
+                startAt: LessThanOrEqual(now),
+                stopAt: MoreThanOrEqual(now),
+                channel: {
+                    displayName: Not(In(TNT_CHANNELS)),
+                },
+            },
+            relations: [
+                'channel',
+            ],
             take: 30,
         })
 
         const titles = [
-            ...new Set(nowPrograms.map((v) => v.title)),
+            ...new Set(programs.map((v) => v.title)),
         ]
 
-        this.logger.log(`action=sync_programs, count=${titles.length}`)
+        this.logger.log(`action=sync_other_programs, count=${titles.length}`)
 
         if (titles.length > 0) {
-            await Promise.all(
-                titles.map((t) => {
-                    return this.syncOneProgram(t)
-                }),
-            )
+            await Promise.all(titles.map((t) => this.syncOneProgram(t)))
         }
 
-        this.logger.log(`action=sync_programs, count=${titles.length}, status=finished`)
+        this.logger.log(`action=sync_other_programs, count=${titles.length}, status=finished`)
     }
 
     // tmdb api
@@ -167,11 +230,11 @@ export class TmdbService {
 
     // db
 
-    private createTmdbDetails(options: { result: TvResult | MovieResult; isMovie: boolean }): TmdbDetails {
+    private createTmdbDetails(options: { result: TvResult | MovieResult; mediaType: MediaType }): TmdbDetails {
         const details = new TmdbDetails()
 
         details.tmdbId = options.result.id ?? null
-        details.isMovie = options.isMovie
+        details.mediaType = options.mediaType
 
         if ('original_name' in options.result) {
             details.originalName = options.result.original_name ?? null
