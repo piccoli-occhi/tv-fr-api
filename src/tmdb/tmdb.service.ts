@@ -37,8 +37,6 @@ export class TmdbService {
                 title: string
             }>()
 
-        // const titles = rows.map((r) => r.title)
-
         this.logger.log(`action=handle_new_programs, count=${rows.length}`)
 
         await Promise.all(
@@ -129,7 +127,7 @@ export class TmdbService {
             })
 
             if (!details.tmdbId) {
-                this.logger.log(`action=sync_program, title=${title}, status=invalid_tmdb_id`)
+                this.logger.log(`action=sync_program, title=${title}, status=no_tmdb_id`)
 
                 await this.tmdbDetails.update(
                     {
