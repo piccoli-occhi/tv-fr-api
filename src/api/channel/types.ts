@@ -1,15 +1,19 @@
-import type { Channel } from 'src/xml-tv/entities/channel.entity'
-import type { Program } from 'src/xml-tv/entities/program.entity'
-import { PaginatedResponse, SortQuery } from '../types'
+import { PaginatedResponse, SortQuery } from '@/api/types'
+import type { Channel } from '@/xml-tv/entities/channel.entity'
+import type { Program } from '@/xml-tv/entities/program.entity'
 
 export enum ChannelSortField {
     DisplayName = 'displayName',
     XmlId = 'xmlId',
 }
 
+export type ChannelWithCurrent = Channel & {
+    current: Program | null
+}
+
 export type PaginatedChannelsResponse = PaginatedResponse & {
     channels: Array<
-        Channel & {
+        ChannelWithCurrent & {
             urls: string[]
         }
     >
@@ -29,7 +33,7 @@ export type ListChannelsQuery = {
 }
 
 export type ListChannelsResult = {
-    channels: Channel[]
+    channels: ChannelWithCurrent[]
     total: number
     totalPages: number
     count: number

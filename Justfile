@@ -1,4 +1,5 @@
 set dotenv-load
+set quiet
 
 install:
     npm install
@@ -11,6 +12,9 @@ start:
 
 stop:
     docker compose stop
+
+restart:
+    docker compose -f docker-compose.dev.yml restart
 
 tests:
     npm run test
@@ -26,11 +30,11 @@ run_cron:
     curl -X GET "http://localhost:3000/api/xml-tv/run" \
         -H "x-internal-cron: tv-api"
 
-tmdb_init:
+init:
     curl -X GET "http://localhost:3000/api/tmdb/init" \
         -H "x-internal-cron: tv-api"
 
-tmdb_sync title="":
+sync title="":
     if [ -n "{{title}}" ]; then \
         curl -G "http://localhost:3000/api/tmdb/sync" \
             -H "x-internal-cron: tv-api" \
@@ -40,6 +44,21 @@ tmdb_sync title="":
             -H "x-internal-cron: tv-api"; \
     fi
 
+sear title="":
+    if [ -n "{{title}}" ]; then \
+        curl -G "http://localhost:3000/api/searxng/sync" \
+            -H "x-internal-cron: tv-api" \
+            --data-urlencode "title={{title}}"; \
+    else \
+        curl -X GET "http://localhost:3000/api/searxng/sync" \
+            -H "x-internal-cron: tv-api"; \
+    fi
+
+do title="":
+    just sync "{{title}}"
+    echo ""
+    just sear "{{title}}"
+    
 fx endpoint="/api/status":
     curl "http://localhost:3000{{endpoint}}" | fx
 

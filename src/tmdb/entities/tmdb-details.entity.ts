@@ -1,4 +1,5 @@
 import { AfterLoad, Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
+import { MediaType } from '@/tmdb/entities/media-type.enum'
 
 @Entity()
 export class TmdbDetails {
@@ -13,10 +14,12 @@ export class TmdbDetails {
     public title: string
 
     @Column({
-        type: 'boolean',
-        default: false,
+        type: 'enum',
+        enum: MediaType,
+        nullable: true,
+        default: null,
     })
-    public isMovie: boolean
+    public mediaType: MediaType | null
 
     @Column({
         type: 'numeric',
@@ -55,15 +58,36 @@ export class TmdbDetails {
     })
     public poster: string | null
 
+    @Column({
+        type: 'varchar',
+        nullable: true,
+        default: null,
+    })
+    public secondaryPoster: string | null
+
+    @Column({
+        type: 'timestamptz',
+        nullable: true,
+        default: null,
+    })
+    public searxngSearchedAt: Date | null
+
+    @Column({
+        type: 'timestamptz',
+        nullable: true,
+        default: null,
+    })
+    public tmdbSyncAt: Date | null
+
     public tmdbUrl: string | null
 
     @AfterLoad()
     public buildTmdbUrl() {
-        const tmdbURI = this.isMovie ? 'movie' : 'tv'
+        if (!this.tmdbId || !this.originalName) {
+            this.tmdbUrl = null
+            return
+        }
 
-        this.tmdbUrl =
-            this.tmdbId && this.originalName
-                ? `https://www.themoviedb.org/${tmdbURI}/${this.tmdbId}-${encodeURIComponent(this.originalName.toLowerCase())}`
-                : null
+        this.tmdbUrl = `https://www.themoviedb.org/${this.mediaType}/${this.tmdbId}-${encodeURIComponent(this.originalName.toLowerCase())}`
     }
 }

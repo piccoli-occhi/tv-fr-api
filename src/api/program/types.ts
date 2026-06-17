@@ -19,7 +19,7 @@ export enum ProgramSortField {
     Title = 'title',
 }
 
-export type ProgramDetails = Omit<Program, 'xmlStart' | 'xmlStop' | 'isSerie'> & {
+export type ProgramDetails = Omit<Program, 'xmlStart' | 'xmlStop'> & {
     channelDisplayName: string
     details?: unknown
 }

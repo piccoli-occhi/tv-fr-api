@@ -11,6 +11,7 @@ You can test endpoints on [https://tv-api.miceli.click](https://tv-api.miceli.cl
 Api endpoints : 
 
 - `/api/channels`
+- `/api/channels/tnt`
 - `/api/channels/search?q=<term>`
 - `/api/channels/:id`
 - `/api/program/:id`
@@ -28,6 +29,7 @@ Process endpoint (`x-internal-cron` header is required) :
 
 - Update programs and channels every day at 1 AM
 - Get program details (score, poster, etc) from TMDB
+- Search programs image with [SearXNG](https://github.com/searxng/searxng)
 
 ## Environment variables
 

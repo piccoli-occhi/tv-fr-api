@@ -1,11 +1,17 @@
 import { Controller, Get, Param, Query, Req } from '@nestjs/common'
 import { ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger'
 import type { Request } from 'express'
-import type { Channel } from '../../xml-tv/entities/channel.entity'
-import { ApiQueryDetails } from '../api.swagger'
-import { type PaginationQuery, SortQuery } from '../types'
-import { ChannelService } from './channel.service'
-import { ChannelDetailsResponse, ChannelSortField, PaginatedChannelsResponse, SearchChannelsQuery } from './types'
+import { ApiQueryDetails } from '@/api/api.swagger'
+import { ChannelService } from '@/api/channel/channel.service'
+import {
+    ChannelDetailsResponse,
+    ChannelSortField,
+    ChannelWithCurrent,
+    PaginatedChannelsResponse,
+    SearchChannelsQuery,
+} from '@/api/channel/types'
+import { type PaginationQuery, SortQuery } from '@/api/types'
+import { Channel } from '@/xml-tv/entities/channel.entity'
 
 type ParsedPagination = {
     page: number
@@ -15,7 +21,7 @@ type ParsedPagination = {
 
 type PaginatedResponseOptions = {
     req: Request
-    channels: Channel[]
+    channels: ChannelWithCurrent[]
     rest: Omit<PaginatedChannelsResponse, 'channels'>
 }
 
@@ -100,7 +106,20 @@ export class ChannelController {
         })
     }
 
-    @Get('channels/:id')
+    @Get('channels/tnt')
+    @ApiOperation({
+        summary: 'List TNT free channels in broadcast order',
+    })
+    @ApiOkResponse({
+        description: 'TNT channels in order',
+        type: Channel,
+        isArray: true,
+    })
+    public async tntChannels(): Promise<ChannelWithCurrent[]> {
+        return this.channelService.tntChannels()
+    }
+
+    @Get('channel/:id')
     @ApiOperation({
         summary: 'Get a channel with its current and daily programs',
     })
