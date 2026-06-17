@@ -1,6 +1,6 @@
 # tv-fr-api
 
-Provides api for [XML-TV-Fr](https://github.com/racacax/XML-TV-Fr).
+Provides api based on [XML-TV-Fr](https://github.com/racacax/XML-TV-Fr).
 
 ## Endpoints
 
@@ -8,43 +8,66 @@ Projets provides docs with [swagger](https://tv-api.miceli.click/api/docs).
 
 You can test endpoints on [https://tv-api.miceli.click](https://tv-api.miceli.click/api/docs) (with rate-limit).
 
-Api endpoints : 
+### Data endpoints
 
-- `/api/channels`
-- `/api/channels/tnt`
-- `/api/channels/search?q=<term>`
-- `/api/channels/:id`
-- `/api/program/:id`
-- `/api/programs/now`
-- `/api/programs/:day`
+| Endpoint | Description |
+|---|---|
+| `GET /api/status` | Health check |
+| `GET /api/channels` | Paginated list of channels |
+| `GET /api/channels/tnt` | TNT channels in broadcast order |
+| `GET /api/channels/search?q=<term>` | Search channels by name |
+| `GET /api/channel/:id` | Channel + current and daily programs |
+| `GET /api/program/:id` | Get a program by id |
+| `GET /api/programs/now` | Currently airing programs |
+| `GET /api/programs/:day` | Programs for a given day |
 
-Process endpoint (`x-internal-cron` header is required) : 
+### XML-TV endpoints (`x-internal-cron` header required)
 
-- `/api/xml-tv/run` # run cron to update database
-- `/api/tmdb/init`  # handle new programs
-- `/api/tmdb/sync`. # Load details on tmdb api for current programs
-- `/api/tmdb/sync?title=<title>` # Load detaisl for a specific program
+| Endpoint | Description |
+|---|---|
+| `GET /api/xml-tv/run` | Download, parse and store channels/programs |
+
+### TMDB endpoints (`x-internal-cron` header required)
+
+| Endpoint | Description |
+|---|---|
+| `GET /api/tmdb/init` | Create placeholder TmdbDetails for new programs |
+| `GET /api/tmdb/sync` | Sync TMDB score/poster for current programs (TNT first) |
+| `GET /api/tmdb/sync?title=<title>` | Sync TMDB details for one program |
+
+### SearXNG endpoints (`x-internal-cron` header required)
+
+| Endpoint | Description |
+|---|---|
+| `GET /api/searxng/sync` | Sync poster images for programs without one |
+| `GET /api/searxng/sync?title=<title>` | Sync poster for one program |
 
 ## Features
 
-- Update programs and channels every day at 1 AM
-- Get program details (score, poster, etc) from TMDB
-- Search programs image with [SearXNG](https://github.com/searxng/searxng)
+- Sync channels and programs from XML-TV daily at 1 AM
+- Enrich current programs with score/poster from TMDB, TNT channels first
+- Fallback poster search via [SearXNG](https://github.com/searxng/searxng) daily at 3 AM
+- Paginated, sortable channels/programs with search by name
+- TNT channels endpoint with broadcast order and current program
+- Rate-limiting on public endpoints
+- Internal endpoints protected by `x-internal-cron` header
 
 ## Environment variables
 
 | Variable | Default | Description |
 |---|---|---|
-| `DATABASE_HOST` | | |
-| `DATABASE_PORT` | `5432` | |
-| `DATABASE_USER` | | |
-| `DATABASE_PASSWORD` | | |
-| `DATABASE_NAME` | | |
-| `PORT` | `3000` | |
+| `DATABASE_HOST` | | DB host |
+| `DATABASE_PORT` | `5432` | DB port |
+| `DATABASE_USER` | | DB user |
+| `DATABASE_PASSWORD` | | DB password |
+| `DATABASE_NAME` | | DB name |
+| `PORT` | `3000` | HTTP port |
 | `THROTTLE_TTL` | `60000` | Rate-limit window in ms |
 | `THROTTLE_LIMIT` | `10` | Max requests per window |
 | `ALLOWED_FORWARD` | | Token required by `x-internal-cron` header |
 | `TMDB_API_KEY` | | TMDB API key |
+| `SEARXNG_URL` | | SearXNG instance URL |
+| `TZ` | | Timezone used for day boundaries (e.g. `Europe/Paris`) |
 | `ENABLE_CRON` | `false` | Enable scheduled cron jobs |
 
 > **`ENABLE_CRON=true` is recommended in production** to activate automatic daily updates.
