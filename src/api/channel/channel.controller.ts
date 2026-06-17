@@ -119,7 +119,7 @@ export class ChannelController {
         return this.channelService.tntChannels()
     }
 
-    @Get('channels/:id')
+    @Get('channel/:id')
     @ApiOperation({
         summary: 'Get a channel with its current and daily programs',
     })

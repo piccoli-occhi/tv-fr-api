@@ -164,7 +164,7 @@ describe('ChannelController', () => {
         })
     })
 
-    describe('GET /api/channels/:id', () => {
+    describe('GET /api/channel/:id', () => {
         test('returns channel with current and day programs (by xmlId)', async () => {
             const channel = await channelRepository.save({
                 xmlId: 'tf1.fr',
@@ -209,7 +209,7 @@ describe('ChannelController', () => {
                 }),
             ])
 
-            const response = await request(app.getHttpServer()).get('/api/channels/tf1.fr').expect(200)
+            const response = await request(app.getHttpServer()).get('/api/channel/tf1.fr').expect(200)
 
             expect(response.body.channel.xmlId).toBe('tf1.fr')
             expect(response.body.currentProgram?.title).toBe('Current show')
@@ -227,7 +227,7 @@ describe('ChannelController', () => {
                 icon: null,
             })
 
-            const response = await request(app.getHttpServer()).get(`/api/channels/${channel.id}`).expect(200)
+            const response = await request(app.getHttpServer()).get(`/api/channel/${channel.id}`).expect(200)
 
             expect(response.body.channel.xmlId).toBe('tf1.fr')
             expect(response.body.currentProgram).toBeNull()
@@ -263,7 +263,7 @@ describe('ChannelController', () => {
 
             const tomorrowFR = dayFormatter.format(new Date(now + oneDay))
             const response = await request(app.getHttpServer())
-                .get(`/api/channels/tf1.fr?day=${encodeURIComponent(tomorrowFR)}`)
+                .get(`/api/channel/tf1.fr?day=${encodeURIComponent(tomorrowFR)}`)
                 .expect(200)
 
             const titles = response.body.dayPrograms.map((p: Program) => p.title)
@@ -273,7 +273,7 @@ describe('ChannelController', () => {
         })
 
         test('returns 404 for unknown channel', async () => {
-            return request(app.getHttpServer()).get('/api/channels/unknown.fr').expect(404)
+            return request(app.getHttpServer()).get('/api/channel/unknown.fr').expect(404)
         })
     })
 

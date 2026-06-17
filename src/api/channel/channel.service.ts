@@ -1,5 +1,5 @@
 import { TZDate } from '@date-fns/tz'
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { And, ILike, In, LessThan, LessThanOrEqual, MoreThan, MoreThanOrEqual, Repository } from 'typeorm'
 import {
@@ -10,6 +10,7 @@ import {
     ListChannelsResult,
     SearchChannelsQuery,
 } from '@/api/channel/types'
+import { ChannelNotFoundException } from '@/api/exceptions'
 import { UUID_REGEX } from '@/api/types'
 import { Channel } from '@/xml-tv/entities/channel.entity'
 import { Program } from '@/xml-tv/entities/program.entity'
@@ -180,7 +181,7 @@ export class ChannelService {
             return channel
         }
 
-        throw new NotFoundException(`Channel not found: ${channelId}`)
+        throw new ChannelNotFoundException(channelId)
     }
 
     private parseDayBoundaries(

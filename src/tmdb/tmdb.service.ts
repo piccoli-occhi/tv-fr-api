@@ -293,7 +293,7 @@ export class TmdbService {
             details.originalName = (options.result as MovieResult).original_title ?? null
         }
 
-        details.popularity = options.result.vote_average ?? null
+        details.popularity = options.result.vote_average ? Math.round(options.result.vote_average) : null
         details.voteCount = options.result.vote_count ?? null
         details.poster = `https://image.tmdb.org/t/p/w500${options.result.poster_path}`
 

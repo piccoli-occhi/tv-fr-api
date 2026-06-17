@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { endOfDay, startOfDay } from 'date-fns'
 import { LessThanOrEqual, MoreThan, Repository } from 'typeorm'
+import { ProgramNotFoundException } from '@/api/exceptions'
 import { Program } from '@/xml-tv/entities/program.entity'
 import { UUID_REGEX } from '../types'
 import { ListProgramsByDayQuery, ListProgramsQuery, PaginatedProgramsResponse } from './types'
@@ -32,7 +33,7 @@ export class ProgramService {
             return program
         }
 
-        throw new NotFoundException(`program.not_found ${id}`)
+        throw new ProgramNotFoundException(id)
     }
 
     public async listCurrentPrograms(query: ListProgramsQuery): Promise<PaginatedProgramsResponse> {
