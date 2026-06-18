@@ -42,6 +42,58 @@ You can test endpoints on [https://tv-api.miceli.click](https://tv-api.miceli.cl
 | `GET /api/searxng/sync` | Sync poster images for programs without one |
 | `GET /api/searxng/sync?title=<title>` | Sync poster for one program |
 
+## Packages
+
+SDKs are generated from the OpenAPI spec and published for JS and PHP.
+
+### JS
+
+```bash
+npm install @amiceli/tv-fr-api
+```
+
+```ts
+import { ChannelsApi } from '@amiceli/tv-fr-api'
+
+const api = new ChannelsApi()
+
+const channels = await api.getTntChannels()
+```
+
+`basePath` defaults to `https://tv-api.miceli.click`, pass a `Configuration` to override it:
+
+```ts
+import { Configuration, ChannelsApi } from '@amiceli/tv-fr-api'
+
+const api = new ChannelsApi(new Configuration({ basePath: 'http://localhost:3000' }))
+```
+
+Beta versions are published under the `beta` npm tag:
+
+```bash
+npm install @amiceli/tv-fr-api@beta
+```
+
+### PHP
+
+```bash
+composer require amiceli/tv-fr-api
+```
+
+```php
+<?php
+require_once(__DIR__ . '/vendor/autoload.php');
+
+$api = new Amiceli\TvFrApi\Api\ChannelsApi(new GuzzleHttp\Client());
+$channels = $api->getTntChannels();
+```
+
+Beta versions use a `-beta.x` suffix and follow Composer's stability flags:
+
+```bash
+composer require amiceli/tv-fr-api:1.2.0-beta.1
+```
+
 ## Features
 
 - Sync channels and programs from XML-TV daily at 1 AM
