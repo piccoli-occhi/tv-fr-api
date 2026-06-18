@@ -38,7 +38,7 @@ export class ProgramController {
         status: HttpStatus.NOT_FOUND,
         description: 'Program not found',
     })
-    public async program(@Param('id') programId: string) {
+    public async getProgram(@Param('id') programId: string) {
         return this.programService.getProgramById(programId)
     }
 
@@ -64,7 +64,7 @@ export class ProgramController {
     @ApiOkResponse({
         description: 'Paginated list of current programs',
     })
-    public async now(@Query() query: PaginationQuery<ProgramSortField>): Promise<PaginatedProgramsResponse> {
+    public async getCurrentPrograms(@Query() query: PaginationQuery<ProgramSortField>): Promise<PaginatedProgramsResponse> {
         const { page, limit, sort, order } = this.parsePagination(query)
         const result = await this.programService.listCurrentPrograms({
             page,
@@ -94,7 +94,7 @@ export class ProgramController {
         status: HttpStatus.BAD_REQUEST,
         description: 'Invalid date format',
     })
-    public async getDayPrograms(
+    public async getProgramsByDay(
         @Param('day') dayStr: string,
         @Query() query: PaginationQuery<ProgramSortField>,
     ): Promise<PaginatedProgramsResponse> {

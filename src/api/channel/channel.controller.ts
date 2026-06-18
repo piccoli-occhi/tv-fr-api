@@ -55,7 +55,7 @@ export class ChannelController {
     @ApiOkResponse({
         description: 'Paginated list of channels',
     })
-    public async channels(@Req() req: Request, @Query() query: PaginationQuery<ChannelSortField>): Promise<PaginatedChannelsResponse> {
+    public async getChannels(@Req() req: Request, @Query() query: PaginationQuery<ChannelSortField>): Promise<PaginatedChannelsResponse> {
         const { page, limit, order } = this.parsePagination(query)
         const sort = Object.values(ChannelSortField).includes(query.sort as ChannelSortField)
             ? (query.sort as ChannelSortField)
@@ -119,7 +119,7 @@ export class ChannelController {
         type: Channel,
         isArray: true,
     })
-    public async tntChannels(): Promise<ChannelWithCurrent[]> {
+    public async getTntChannels(): Promise<ChannelWithCurrent[]> {
         return this.channelService.tntChannels()
     }
 
@@ -145,7 +145,7 @@ export class ChannelController {
         status: HttpStatus.NOT_FOUND,
         description: 'Channel not found',
     })
-    public async channelDetails(@Param('id') channelId: string, @Query('day') programDay?: string): Promise<ChannelDetailsResponse> {
+    public async getChannelDetails(@Param('id') channelId: string, @Query('day') programDay?: string): Promise<ChannelDetailsResponse> {
         return this.channelService.getChannelDetails({
             channelId,
             programDay,
