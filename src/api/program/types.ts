@@ -1,5 +1,5 @@
+import type { ChannelSummary } from '@/api/channel/types'
 import { PaginatedResponse, SortQuery } from '@/api/types'
-import { Program } from '@/xml-tv/entities/program.entity'
 
 export type ListProgramsQuery = {
     page: number
@@ -19,11 +19,32 @@ export enum ProgramSortField {
     Title = 'title',
 }
 
-export type ProgramDetails = Omit<Program, 'xmlStart' | 'xmlStop'> & {
-    channelDisplayName: string
-    details?: unknown
+export class ProgramSummary {
+    public id: string
+    public title: string
+    public subTitle: string | null
+    public desc: string | null
+    public xmlStart: string
+    public xmlStop: string
+    public startAt: Date
+    public stopAt: Date
+    public ratingIcon: string | null
+    public icon: string | null
+    public episode: string | null
+    public rating: string | null
+    public categories: string[]
+    public credits: string[]
+    public channelXmlId: string
 }
 
-export type PaginatedProgramsResponse = PaginatedResponse & {
-    programs: ProgramDetails[]
+export class ProgramWithChannel extends ProgramSummary {
+    public channel: ChannelSummary
+}
+
+export class ProgramDetails extends ProgramSummary {
+    public channelDisplayName: string
+}
+
+export class PaginatedProgramsResponse extends PaginatedResponse {
+    public programs: ProgramDetails[]
 }

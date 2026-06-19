@@ -1,28 +1,34 @@
+import type { ProgramSummary } from '@/api/program/types'
 import { PaginatedResponse, SortQuery } from '@/api/types'
-import type { Channel } from '@/xml-tv/entities/channel.entity'
-import type { Program } from '@/xml-tv/entities/program.entity'
 
 export enum ChannelSortField {
     DisplayName = 'displayName',
     XmlId = 'xmlId',
 }
 
-export type ChannelWithCurrent = Channel & {
-    current: Program | null
+export class ChannelSummary {
+    public id: string
+    public displayName: string
+    public xmlId: string
+    public icon: string | null
 }
 
-export type PaginatedChannelsResponse = PaginatedResponse & {
-    channels: Array<
-        ChannelWithCurrent & {
-            urls: string[]
-        }
-    >
+export class ChannelWithCurrent extends ChannelSummary {
+    public current: ProgramSummary | null
 }
 
-export type ChannelDetailsResponse = {
-    channel: Channel
-    currentProgram: Program | null
-    dayPrograms: Program[]
+export class ChannelWithCurrentAndUrls extends ChannelWithCurrent {
+    public urls: string[]
+}
+
+export class PaginatedChannelsResponse extends PaginatedResponse {
+    public channels: ChannelWithCurrentAndUrls[]
+}
+
+export class ChannelDetailsResponse {
+    public channel: ChannelSummary
+    public currentProgram: ProgramSummary | null
+    public dayPrograms: ProgramSummary[]
 }
 
 export type ListChannelsQuery = {

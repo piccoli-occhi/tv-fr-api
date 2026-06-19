@@ -11,7 +11,6 @@ import {
     SearchChannelsQuery,
 } from '@/api/channel/types'
 import { type PaginationQuery, SortQuery } from '@/api/types'
-import { Channel } from '@/xml-tv/entities/channel.entity'
 
 type ParsedPagination = {
     page: number
@@ -54,6 +53,7 @@ export class ChannelController {
     )
     @ApiOkResponse({
         description: 'Paginated list of channels',
+        type: PaginatedChannelsResponse,
     })
     public async getChannels(@Req() req: Request, @Query() query: PaginationQuery<ChannelSortField>): Promise<PaginatedChannelsResponse> {
         const { page, limit, order } = this.parsePagination(query)
@@ -89,6 +89,7 @@ export class ChannelController {
     @ApiQuery(ApiQueryDetails.limit)
     @ApiOkResponse({
         description: 'Paginated matching channels',
+        type: PaginatedChannelsResponse,
     })
     public async searchChannels(
         @Req() req: Request,
@@ -116,7 +117,7 @@ export class ChannelController {
     })
     @ApiOkResponse({
         description: 'TNT channels in order',
-        type: Channel,
+        type: ChannelWithCurrent,
         isArray: true,
     })
     public async getTntChannels(): Promise<ChannelWithCurrent[]> {
@@ -140,6 +141,7 @@ export class ChannelController {
     })
     @ApiOkResponse({
         description: 'Channel with current and daily programs',
+        type: ChannelDetailsResponse,
     })
     @ApiResponse({
         status: HttpStatus.NOT_FOUND,

@@ -4,7 +4,7 @@ import { isValid } from 'date-fns'
 import { ApiQueryDetails } from '../api.swagger'
 import { type PaginationQuery, SortQuery } from '../types'
 import { ProgramService } from './program.service'
-import { PaginatedProgramsResponse, ProgramSortField } from './types'
+import { PaginatedProgramsResponse, ProgramSortField, ProgramWithChannel } from './types'
 
 type ParsedPagination = {
     page: number
@@ -33,12 +33,13 @@ export class ProgramController {
     })
     @ApiOkResponse({
         description: 'Program details',
+        type: ProgramWithChannel,
     })
     @ApiResponse({
         status: HttpStatus.NOT_FOUND,
         description: 'Program not found',
     })
-    public async getProgram(@Param('id') programId: string) {
+    public async getProgram(@Param('id') programId: string): Promise<ProgramWithChannel> {
         return this.programService.getProgramById(programId)
     }
 
@@ -63,6 +64,7 @@ export class ProgramController {
     )
     @ApiOkResponse({
         description: 'Paginated list of current programs',
+        type: PaginatedProgramsResponse,
     })
     public async getCurrentPrograms(@Query() query: PaginationQuery<ProgramSortField>): Promise<PaginatedProgramsResponse> {
         const { page, limit, sort, order } = this.parsePagination(query)
@@ -89,6 +91,7 @@ export class ProgramController {
     @ApiQuery(ApiQueryDetails.limit)
     @ApiOkResponse({
         description: 'Paginated list of programs for the day',
+        type: PaginatedProgramsResponse,
     })
     @ApiResponse({
         status: HttpStatus.BAD_REQUEST,
