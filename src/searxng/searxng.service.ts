@@ -81,7 +81,7 @@ export class SearxngService {
                 searxngSearchedAt: new Date(),
             })
 
-            this.logger.log(`action=search_poster, title=${details.title}, found=${imageUrl !== null}`)
+            this.logger.log(`action=search_poster, title=${details.title}, image_url=${imageUrl}`)
         } catch (e) {
             this.logger.error(`action=search_poster, title=${details.title}, status=failed, reason=${e}`)
         }
