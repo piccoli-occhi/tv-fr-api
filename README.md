@@ -68,12 +68,6 @@ import { Configuration, ChannelsApi } from '@amiceli/tv-fr-api'
 const api = new ChannelsApi(new Configuration({ basePath: 'http://localhost:3000' }))
 ```
 
-Beta versions are published under the `beta` npm tag:
-
-```bash
-npm install @amiceli/tv-fr-api
-```
-
 ### PHP
 
 Not published on Packagist, add it as a VCS repository in your `composer.json`:
