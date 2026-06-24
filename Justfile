@@ -8,7 +8,7 @@ install:
 start:
     docker compose -f docker-compose.dev.yml up -d
     sleep 2
-    open "http://localhost:3000/api/status"
+    just open
 
 stop:
     docker compose stop
@@ -75,10 +75,9 @@ sdk-js version:
         -t /local/.openapi-templates/typescript-fetch \
         --git-host github.com --git-user-id piccoli-occhi --git-repo-id tv-fr-api \
         --additional-properties npmName=@amiceli/tv-fr-api,npmVersion={{version}},supportsES6=true
-    sed -i '' 's/"description": ".*"/"description": "Lib to use the tv-fr API based on xml-tv-fr"/' sdk/js/package.json
-    sed -i '' 's/"author": ".*"/"author": "amiceli"/' sdk/js/package.json
 
 sdk-php version:
+    rm -rf sdk/php
     docker run --rm \
         -v ${PWD}:/local \
         openapitools/openapi-generator-cli generate \
@@ -87,10 +86,7 @@ sdk-php version:
         -o /local/sdk/php \
         -t /local/.openapi-templates/php \
         --git-host github.com --git-user-id piccoli-occhi --git-repo-id tv-fr-api-php \
-        --additional-properties invokerPackage=PiccoliOcchi\\TvFrApi,composerPackageName=piccoli-occhi/tv-fr-api-php,packageVersion={{version}}
-    sed -i '' 's/"description": ".*"/"description": "Lib to use the tv-fr API based on xml-tv-fr"/' sdk/php/composer.json
-    sed -i '' 's/"name": "OpenAPI"/"name": "amiceli"/' sdk/php/composer.json
-    sed -i '' 's#"homepage": "https://openapi-generator.tech"#"homepage": "https://github.com/piccoli-occhi/tv-fr-api-php"#' sdk/php/composer.json
+        --additional-properties invokerPackage=PiccoliOcchi\\TvFrApi,composerPackageName=piccoli-occhi/tv-fr-api-php,packageVersion={{version}},developerOrganization=amiceli,artifactUrl=https://github.com/piccoli-occhi/tv-fr-api-php,developerOrganizationUrl=https://github.com/piccoli-occhi/tv-fr-api-php
 
 publish-js version:
     just sdk-js {{version}}
@@ -99,7 +95,7 @@ publish-js version:
 
 publish-php version:
     just sdk-php {{version}}
-    cd sdk/php && bash git_push.sh piccoli-occhi tv-fr-api-php "Release {{version}}"
+    cd sdk/php && bash git_push.sh piccoli-occhi tv-fr-api-php "feat: publish {{version}}"
     cd sdk/php && git tag {{version}} && git push origin {{version}}
     sed -i '' 's/"php": ".*"/"php": "{{version}}"/' versions.json
 
@@ -110,6 +106,9 @@ publish-js-beta version:
 
 publish-php-beta version:
     just sdk-php {{version}}
-    cd sdk/php && bash git_push.sh piccoli-occhi tv-fr-api-php "Beta release {{version}}"
+    cd sdk/php && bash git_push.sh piccoli-occhi tv-fr-api-php "feat: publish {{version}}"
     cd sdk/php && git tag {{version}} && git push origin {{version}}
     sed -i '' 's/"php_beta": ".*"/"php_beta": "{{version}}"/' versions.json
+
+open:
+    open "http://localhost:3000/api/status"

@@ -76,6 +76,18 @@ npm install @amiceli/tv-fr-api
 
 ### PHP
 
+Not published on Packagist, add it as a VCS repository in your `composer.json`:
+
+```json
+"repositories": [
+    {
+        "type": "vcs",
+        "url": "https://github.com/piccoli-occhi/tv-fr-api-php"
+    }
+],
+"minimum-stability": "beta"
+```
+
 ```bash
 composer require piccoli-occhi/tv-fr-api-php
 ```
