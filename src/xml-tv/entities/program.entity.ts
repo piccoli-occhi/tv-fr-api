@@ -1,4 +1,5 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
+import { TmdbDetails } from '@/tmdb/entities/tmdb-details.entity'
 import { Channel } from './channel.entity'
 
 @Entity()
@@ -105,4 +106,6 @@ export class Program {
         referencedColumnName: 'xmlId',
     })
     public channel: Channel
+
+    public details: TmdbDetails | null
 }

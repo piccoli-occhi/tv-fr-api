@@ -5,7 +5,7 @@ import { LessThanOrEqual, MoreThan, Repository } from 'typeorm'
 import { ProgramNotFoundException } from '@/api/exceptions'
 import { Program } from '@/xml-tv/entities/program.entity'
 import { UUID_REGEX } from '../types'
-import { ListProgramsByDayQuery, ListProgramsQuery, PaginatedProgramsResponse } from './types'
+import { ListProgramsByDayQuery, ListProgramsQuery, PaginatedProgramsResponse, ProgramWithChannel } from './types'
 
 @Injectable()
 export class ProgramService {
@@ -14,7 +14,7 @@ export class ProgramService {
         private readonly programRepository: Repository<Program>,
     ) {}
 
-    public async getProgramById(id: string): Promise<Program> {
+    public async getProgramById(id: string): Promise<ProgramWithChannel> {
         const where = UUID_REGEX.test(id)
             ? {
                   id,

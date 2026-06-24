@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { InjectDataSource } from '@nestjs/typeorm'
 import { DataSource } from 'typeorm'
+import { StatusResponse } from '@/api/types'
 
 @Injectable()
 export class ApiService {
@@ -9,10 +10,7 @@ export class ApiService {
         private readonly dataSource: DataSource,
     ) {}
 
-    public async getStatus(): Promise<{
-        status: string
-        database: string
-    }> {
+    public async getStatus(): Promise<StatusResponse> {
         try {
             await this.dataSource.query('SELECT 1')
 

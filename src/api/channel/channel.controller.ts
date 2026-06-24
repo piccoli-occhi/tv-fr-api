@@ -1,5 +1,5 @@
-import { Controller, Get, Param, Query, Req } from '@nestjs/common'
-import { ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger'
+import { Controller, Get, HttpStatus, Param, Query, Req } from '@nestjs/common'
+import { ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger'
 import type { Request } from 'express'
 import { ApiQueryDetails } from '@/api/api.swagger'
 import { ChannelService } from '@/api/channel/channel.service'
@@ -11,7 +11,6 @@ import {
     SearchChannelsQuery,
 } from '@/api/channel/types'
 import { type PaginationQuery, SortQuery } from '@/api/types'
-import { Channel } from '@/xml-tv/entities/channel.entity'
 
 type ParsedPagination = {
     page: number
@@ -26,6 +25,10 @@ type PaginatedResponseOptions = {
 }
 
 @ApiTags('Channels')
+@ApiResponse({
+    status: HttpStatus.TOO_MANY_REQUESTS,
+    description: 'Rate limit exceeded',
+})
 @Controller()
 export class ChannelController {
     public constructor(private readonly channelService: ChannelService) {}
@@ -50,8 +53,9 @@ export class ChannelController {
     )
     @ApiOkResponse({
         description: 'Paginated list of channels',
+        type: PaginatedChannelsResponse,
     })
-    public async channels(@Req() req: Request, @Query() query: PaginationQuery<ChannelSortField>): Promise<PaginatedChannelsResponse> {
+    public async getChannels(@Req() req: Request, @Query() query: PaginationQuery<ChannelSortField>): Promise<PaginatedChannelsResponse> {
         const { page, limit, order } = this.parsePagination(query)
         const sort = Object.values(ChannelSortField).includes(query.sort as ChannelSortField)
             ? (query.sort as ChannelSortField)
@@ -85,6 +89,7 @@ export class ChannelController {
     @ApiQuery(ApiQueryDetails.limit)
     @ApiOkResponse({
         description: 'Paginated matching channels',
+        type: PaginatedChannelsResponse,
     })
     public async searchChannels(
         @Req() req: Request,
@@ -112,10 +117,10 @@ export class ChannelController {
     })
     @ApiOkResponse({
         description: 'TNT channels in order',
-        type: Channel,
+        type: ChannelWithCurrent,
         isArray: true,
     })
-    public async tntChannels(): Promise<ChannelWithCurrent[]> {
+    public async getTntChannels(): Promise<ChannelWithCurrent[]> {
         return this.channelService.tntChannels()
     }
 
@@ -136,8 +141,13 @@ export class ChannelController {
     })
     @ApiOkResponse({
         description: 'Channel with current and daily programs',
+        type: ChannelDetailsResponse,
     })
-    public async channelDetails(@Param('id') channelId: string, @Query('day') programDay?: string): Promise<ChannelDetailsResponse> {
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'Channel not found',
+    })
+    public async getChannelDetails(@Param('id') channelId: string, @Query('day') programDay?: string): Promise<ChannelDetailsResponse> {
         return this.channelService.getChannelDetails({
             channelId,
             programDay,

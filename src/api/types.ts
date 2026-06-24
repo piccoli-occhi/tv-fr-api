@@ -1,10 +1,15 @@
 export const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
-export type PaginatedResponse = {
-    total: number
-    totalPages: number
-    count: number
-    limit: number
+export class PaginatedResponse {
+    public total: number
+    public totalPages: number
+    public count: number
+    public limit: number
+}
+
+export class StatusResponse {
+    public status: string
+    public database: string
 }
 
 export type PaginationQuery<SortField extends string = string> = {

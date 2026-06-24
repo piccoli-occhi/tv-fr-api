@@ -2,10 +2,6 @@ import { EntitySubscriberInterface, EventSubscriber } from 'typeorm'
 import { Program } from '@/xml-tv/entities/program.entity'
 import { TmdbDetails } from './tmdb-details.entity'
 
-type ProgramWithDetails = Program & {
-    details: TmdbDetails | null
-}
-
 @EventSubscriber()
 export class ProgramSubscriber implements EntitySubscriberInterface<Program> {
     listenTo() {
@@ -13,7 +9,7 @@ export class ProgramSubscriber implements EntitySubscriberInterface<Program> {
     }
 
     // biome-ignore lint: suspicious/noExplicitAny useless
-    async afterLoad(program: ProgramWithDetails, event?: any) {
+    async afterLoad(program: Program, event?: any) {
         if (!event?.manager) {
             program.details = null
 

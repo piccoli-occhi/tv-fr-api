@@ -8,7 +8,7 @@ install:
 start:
     docker compose -f docker-compose.dev.yml up -d
     sleep 2
-    open "http://localhost:3000/api/status"
+    just open
 
 stop:
     docker compose stop
@@ -64,3 +64,62 @@ fx endpoint="/api/status":
 
 adminer:
     open "http://localhost:8080/?pgsql=${DATABASE_HOST:-tv-api-db}&username=${DATABASE_USER:-tvfr}&db=${DATABASE_NAME:-tvfr}"
+
+sdk-js version:
+    docker run --rm \
+        -v ${PWD}:/local \
+        openapitools/openapi-generator-cli generate \
+        -i /local/openapi.json \
+        -g typescript-fetch \
+        -o /local/sdk/js \
+        -t /local/.openapi-templates/typescript-fetch \
+        --git-host github.com --git-user-id piccoli-occhi --git-repo-id tv-fr-api \
+        --additional-properties npmName=@amiceli/tv-fr-api,npmVersion={{version}},supportsES6=true
+
+clone-php-sdk:
+    if [ ! -d sdk/php/.git ]; then \
+        git clone git@github.com:piccoli-occhi/tv-fr-api-php.git sdk/php; \
+    fi
+
+sdk-php version:
+    just clone-php-sdk
+    find sdk/php -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
+    docker run --rm \
+        -v ${PWD}:/local \
+        openapitools/openapi-generator-cli generate \
+        -i /local/openapi.json \
+        -g php \
+        -o /local/sdk/php \
+        -t /local/.openapi-templates/php \
+        --git-host github.com --git-user-id piccoli-occhi --git-repo-id tv-fr-api-php \
+        --additional-properties invokerPackage=PiccoliOcchi\\TvFrApi,composerPackageName=piccoli-occhi/tv-fr-api-php,packageVersion={{version}},developerOrganization=amiceli,artifactUrl=https://github.com/piccoli-occhi/tv-fr-api-php,developerOrganizationUrl=https://github.com/piccoli-occhi/tv-fr-api-php
+    rm -f sdk/php/git_push.sh
+
+publish-js version:
+    just sdk-js {{version}}
+    cd sdk/js && npm publish
+    sed -i '' 's/"js": ".*"/"js": "{{version}}"/' versions.json
+
+publish-php version:
+    just clone-php-sdk
+    cd sdk/php && git fetch origin && git checkout main && git merge --ff-only origin/main
+    just sdk-php {{version}}
+    cd sdk/php && git add -A && git commit -m "feat: publish {{version}}" && git push origin main
+    cd sdk/php && git tag {{version}} && git push origin {{version}}
+    sed -i '' 's/"php": ".*"/"php": "{{version}}"/' versions.json
+
+publish-js-beta version:
+    just sdk-js {{version}}
+    cd sdk/js && npm publish --tag beta
+    sed -i '' 's/"js_beta": ".*"/"js_beta": "{{version}}"/' versions.json
+
+publish-php-beta version:
+    just clone-php-sdk
+    cd sdk/php && git fetch origin && git checkout -B beta origin/main
+    just sdk-php {{version}}
+    cd sdk/php && git add -A && git commit -m "feat: publish {{version}}" && git push origin beta --force-with-lease
+    cd sdk/php && git tag {{version}} && git push origin {{version}}
+    sed -i '' 's/"php_beta": ".*"/"php_beta": "{{version}}"/' versions.json
+
+open:
+    open "http://localhost:3000/api/status"

@@ -1,10 +1,10 @@
-import { BadRequestException, Controller, Get, Param, Query } from '@nestjs/common'
-import { ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger'
+import { BadRequestException, Controller, Get, HttpStatus, Param, Query } from '@nestjs/common'
+import { ApiOkResponse, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { isValid } from 'date-fns'
 import { ApiQueryDetails } from '../api.swagger'
 import { type PaginationQuery, SortQuery } from '../types'
 import { ProgramService } from './program.service'
-import { PaginatedProgramsResponse, ProgramSortField } from './types'
+import { PaginatedProgramsResponse, ProgramSortField, ProgramWithChannel } from './types'
 
 type ParsedPagination = {
     page: number
@@ -14,6 +14,10 @@ type ParsedPagination = {
 }
 
 @ApiTags('Programs')
+@ApiResponse({
+    status: HttpStatus.TOO_MANY_REQUESTS,
+    description: 'Rate limit exceeded',
+})
 @Controller()
 export class ProgramController {
     public constructor(private readonly programService: ProgramService) {}
@@ -29,8 +33,13 @@ export class ProgramController {
     })
     @ApiOkResponse({
         description: 'Program details',
+        type: ProgramWithChannel,
     })
-    public async program(@Param('id') programId: string) {
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'Program not found',
+    })
+    public async getProgram(@Param('id') programId: string): Promise<ProgramWithChannel> {
         return this.programService.getProgramById(programId)
     }
 
@@ -55,8 +64,9 @@ export class ProgramController {
     )
     @ApiOkResponse({
         description: 'Paginated list of current programs',
+        type: PaginatedProgramsResponse,
     })
-    public async now(@Query() query: PaginationQuery<ProgramSortField>): Promise<PaginatedProgramsResponse> {
+    public async getCurrentPrograms(@Query() query: PaginationQuery<ProgramSortField>): Promise<PaginatedProgramsResponse> {
         const { page, limit, sort, order } = this.parsePagination(query)
         const result = await this.programService.listCurrentPrograms({
             page,
@@ -81,8 +91,13 @@ export class ProgramController {
     @ApiQuery(ApiQueryDetails.limit)
     @ApiOkResponse({
         description: 'Paginated list of programs for the day',
+        type: PaginatedProgramsResponse,
     })
-    public async getDayPrograms(
+    @ApiResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: 'Invalid date format',
+    })
+    public async getProgramsByDay(
         @Param('day') dayStr: string,
         @Query() query: PaginationQuery<ProgramSortField>,
     ): Promise<PaginatedProgramsResponse> {

@@ -1,8 +1,13 @@
-import { Controller, Get } from '@nestjs/common'
-import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger'
+import { Controller, Get, HttpStatus } from '@nestjs/common'
+import { ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
+import { StatusResponse } from '@/api/types'
 import { ApiService } from './api.service'
 
 @ApiTags('Status')
+@ApiResponse({
+    status: HttpStatus.TOO_MANY_REQUESTS,
+    description: 'Rate limit exceeded',
+})
 @Controller()
 export class ApiController {
     public constructor(private readonly apiService: ApiService) {}
@@ -13,15 +18,13 @@ export class ApiController {
     })
     @ApiOkResponse({
         description: 'Service status',
+        type: StatusResponse,
         example: {
             status: 'ok',
             database: 'ok',
         },
     })
-    public status(): Promise<{
-        status: string
-        database: string
-    }> {
+    public status(): Promise<StatusResponse> {
         return this.apiService.getStatus()
     }
 }
